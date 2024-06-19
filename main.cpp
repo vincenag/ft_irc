@@ -9,7 +9,9 @@ int main(int argc, char *argv[])
     }
     try{
         Server server;
-        //signal(SIGINT, Server::signalHandler);
+        signal(SIGINT, Server::signalHandler);
+
+        server.serverInit(atoi(argv[1]), argv[2]);
 
     }
     catch(const std::exception &e){
