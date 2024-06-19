@@ -65,3 +65,15 @@ void Server::socketInit()
 
     //.............................................
 }
+
+/* funcion poll: poll() y la estructura pollfd se utilizan para gestionar de manera eficiente múltiples conexiones de clientes. 
+Permiten al servidor monitorear varios descriptores de archivo simultáneamente, reaccionar a eventos de E/S de forma no bloqueante, y manejar nuevas conexiones, datos entrantes y desconexiones de manera ordenada y eficiente. 
+
+Deberia agregar cada socket a la estructura poll, para monitorear cambios
+
+struct pollfd {
+ int     fd; //-> file descriptor
+ short   events;//-> requested events
+ short   revents;//-> returned events
+};
+*/
