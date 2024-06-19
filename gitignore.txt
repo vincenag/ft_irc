@@ -1,0 +1,6 @@
+# Object files
+*.o
+
+# General
+.DS_Store
+.vscode
