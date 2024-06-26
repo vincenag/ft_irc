@@ -163,3 +163,60 @@ void Server::getClientdata(int clientSocket)
         //Agregar la logica para manejar los datos recibidos (parseo, validacion, etc.)
     }
 }
+
+bool Server::isNicknameTaken(const std::string &nickname)
+{
+    for (size_t i = 0; i < this->clients.size(); ++i)
+    {
+        if (this->clients[i].getNickname() == nickname)
+            return true;
+    }
+    return false;
+}
+
+void Server::joinChannel(const std::string &channel, Client &client)
+{
+    // Agregar la logica para unir al cliente a un canal
+    (void)channel;
+    (void)client;
+}
+
+void Server::sendMessage(const std::string &target, const std::string &message, Client &client)
+{
+    // Agregar la logica para enviar un mensaje a un cliente o canal
+    (void)target;
+    (void)message;
+    (void)client;
+}
+
+void Server::kickUser(const std::string &channel, const std::string &user, Client &client)
+{
+    // Agregar la logica para expulsar a un usuario de un canal
+    (void)channel;
+    (void)user;
+    (void)client;
+}
+
+void Server::inviteUser(const std::string &channel, const std::string &user, Client &client)
+{
+    // Agregar la logica para invitar a un usuario a un canal
+    (void)channel;
+    (void)user;
+    (void)client;
+}
+
+void Server::setTopic(const std::string &channel, const std::string &topic, Client &client)
+{
+    // Agregar la logica para establecer o obtener el tema de un canal
+    (void)channel;
+    (void)topic;
+    (void)client;
+}
+
+void Server::setChannelMode(const std::string &channel, const std::string &mode, Client &client)
+{
+    // Agregar la logica para establecer el modo de un canal
+    (void)channel;
+    (void)mode;
+    (void)client;
+}

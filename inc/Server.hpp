@@ -27,6 +27,14 @@ class Server{
         static void signalHandler(int signal);
         void serverInit(int port, std::string password);
 
+        // Funciones auxiliares
+        bool isNicknameTaken(const std::string &nickname);
+        void joinChannel(const std::string &channel, Client &client);
+        void sendMessage(const std::string &target, const std::string &message, Client &client);
+        void kickUser(const std::string &channel, const std::string &user, Client &client);
+        void inviteUser(const std::string &channel, const std::string &user, Client &client);
+        void setTopic(const std::string &channel, const std::string &topic, Client &client);
+        void setChannelMode(const std::string &channel, const std::string &mode, Client &client);
 
     private:
         std::string password;
@@ -41,7 +49,7 @@ class Server{
         void socketInit();
         void acceptClient();
         void getClientdata(int clientSocket);
-        
+
 };
 
 #endif

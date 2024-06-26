@@ -11,6 +11,7 @@ INC_DIR = inc
 SRCS := main.cpp\
 		$(SRC_DIR)/Server.cpp\
 		$(SRC_DIR)/Client.cpp\
+		$(SRC_DIR)/CommandHandler.cpp\
 
 OBJS := $(patsubst %.cpp,$(OBJ_DIR)/%.o,$(notdir $(SRCS)))
 

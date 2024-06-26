@@ -3,7 +3,8 @@
 
 #include <iostream>
 
-class Client {
+class Client 
+{
     public:
         Client();
         ~Client();
@@ -15,12 +16,19 @@ class Client {
 
         int GetClientSocket();
         std::string GetClientIpAddr();
+
+        // Metodos para los comandos
+        void setNickname(std::string nickname);
+        std::string getNickname();
+        void setUsername(std::string username);
+        std::string getUsername();
     
     private:
         int clientSocket;
         std::string clientIpAddr;
 
-
+        std::string nickname;
+        std::string username;
 };
 
 #endif
