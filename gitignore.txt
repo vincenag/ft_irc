@@ -4,3 +4,4 @@
 # General
 .DS_Store
 .vscode
+.vscode/
