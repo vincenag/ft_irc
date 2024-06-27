@@ -17,6 +17,7 @@ Server &Server::operator=(Server const &src) // modificar esto luego
         this->fds = src.fds;
         this->new_poll = src.new_poll;
         this->clients = src.clients;
+        this->channels = src.channels;
     }
     return *this;
 }
@@ -62,6 +63,9 @@ void Server::serverInit(int port, std::string password)
     std::cout << "Server initialized" << std::endl;
 
     this->socketInit();
+
+    Channel chanelGeneral("General");
+    this->channels.push_back(chanelGeneral);
 
     while (Server::Signal == false)
     {
@@ -155,6 +159,9 @@ void Server::acceptClient()
     std::cout << "New client connected. IP: " << newClient.GetClientIpAddr() << std::endl;
 
     clients.push_back(newClient);
+
+    //Agregar este cliente al chanel General
+    this->channels[0].AddUser(newClient.GetClientIpAddr());
 }
 
 /**
