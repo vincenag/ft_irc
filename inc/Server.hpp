@@ -27,7 +27,6 @@ class Server{
         static void signalHandler(int signal);
         void serverInit(int port, std::string password);
 
-
     private:
         std::string password;
         int port;
@@ -41,7 +40,7 @@ class Server{
         void socketInit();
         void acceptClient();
         void getClientdata(int clientSocket);
-        
+
 };
 
 #endif

@@ -3,7 +3,8 @@
 
 #include <iostream>
 
-class Client {
+class Client 
+{
     public:
         Client();
         ~Client();
@@ -19,8 +20,6 @@ class Client {
     private:
         int clientSocket;
         std::string clientIpAddr;
-
-
 };
 
 #endif
