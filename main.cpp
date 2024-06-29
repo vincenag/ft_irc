@@ -1,17 +1,20 @@
 #include "Server.hpp"
+#include "ArgumentsValidator.hpp"
 
 int main(int argc, char *argv[])
 {
-    if (argc != 3)
+    try
     {
-        std::cerr << "Usage: " << argv[0] << " <port number> <password>" << std::endl;
-        return 1;
-    }
-    try{
+        // Validar argumentos
+        ArgumentsValidator validator(argc, argv);
+        int port = validator.getPort();
+        std::string password = validator.getPassword();
+
+        // Inicializar servidor
         Server server;
         signal(SIGINT, Server::signalHandler);
 
-        server.serverInit(atoi(argv[1]), argv[2]);
+        server.serverInit(port, password);
 
     }
     catch(const std::exception &e){

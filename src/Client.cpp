@@ -1,6 +1,6 @@
 #include "Client.hpp"
 
-Client::Client(): clientSocket(-1), clientIpAddr(""), nickname(""), username(""){}
+Client::Client(): clientSocket(-1), clientIpAddr(""){}
 
 Client::~Client(){}
 
@@ -34,24 +34,4 @@ int Client::GetClientSocket()
 std::string Client::GetClientIpAddr()
 {
     return this->clientIpAddr;
-}
-
-void Client::setNickname(std::string nickname)
-{
-    this->nickname = nickname;
-}
-
-std::string Client::getNickname()
-{
-    return this->nickname;
-}
-
-void Client::setUsername(std::string username)
-{
-    this->username = username;
-}
-
-std::string Client::getUsername()
-{
-    return this->username;
 }
