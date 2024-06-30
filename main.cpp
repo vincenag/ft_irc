@@ -1,5 +1,4 @@
-#include "Server.hpp"
-#include "ArgumentsValidator.hpp"
+#include "Library.hpp"
 
 static void printIRCChatBanner()
 {
@@ -28,13 +27,13 @@ static void printIRCChatBanner()
 
 int main(int argc, char *argv[])
 {
-    printIRCChatBanner();
     try
     {
         // Validar argumentos
         ArgumentsValidator validator(argc, argv);
         int port = validator.getPort();
         std::string password = validator.getPassword();
+        printIRCChatBanner();
 
         // Inicializar servidor
         Server server;

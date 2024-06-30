@@ -1,6 +1,6 @@
 #include "../inc/CommandHandler.hpp"
 
-CommandHandler::CommandHandler(Server& server) : server(server) {}
+//CommandHandler::CommandHandler(Server& server) : server(server) {}
 
 void CommandHandler::handleCommand(Client &client, const std::string &commandLine)
 {

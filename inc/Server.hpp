@@ -1,21 +1,9 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-#include <iostream>
-#include <string>
-#include <csignal>
-#include <exception>
-#include <cstdlib>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <poll.h>
-#include <vector>
-#include <fcntl.h>
-#include <arpa/inet.h>
-#include <algorithm>
-#include <cstring>
-
-#include "Client.hpp"
+#include "Library.hpp"
+class Client;
+class CommandHandler;
 
 class Server{
     public:

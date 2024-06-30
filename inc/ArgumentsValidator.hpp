@@ -1,9 +1,7 @@
 #ifndef  ARGUMENTSVALIDATOR_HPP
 #define ARGUMENTSVALIDATOR_HPP
 
-#include <string>
-#include <stdexcept>
-#include <cstdlib>
+#include "Library.hpp"
 
 class ArgumentsValidator 
 {
