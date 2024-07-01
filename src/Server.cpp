@@ -17,12 +17,21 @@ Server &Server::operator=(Server const &src) // modificar esto luego
         this->fds = src.fds;
         this->new_poll = src.new_poll;
         this->clients = src.clients;
+        this->channels = src.channels;
     }
     return *this;
 }
 
 bool Server::Signal = false;
 
+/**
+ * @brief Manejador de señales.
+ *
+ * Esta función estática se llama cuando se recibe una señal.
+ * Establece la variable estática `Signal` en `true` para indicar que se ha recibido una señal.
+ *
+ * @param signal El número de la señal recibida.
+ */
 void Server::signalHandler(int signal)
 {
     (void)signal;
@@ -30,6 +39,22 @@ void Server::signalHandler(int signal)
     Signal = true;
 }
 
+/**
+ * @brief Inicializa el servidor y maneja las conexiones entrantes y los datos de los clientes.
+ *
+ * Esta función configura el servidor con el puerto y la contraseña proporcionados,
+ * inicializa el socket del servidor y entra en un bucle que utiliza `poll` para 
+ * manejar conexiones y datos entrantes de los clientes. Si el `poll` detecta que 
+ * hay datos para leer en el socket del servidor, acepta una nueva conexión de cliente.
+ * Si hay datos para leer en los sockets de los clientes existentes, llama a la 
+ * función para procesar esos datos.
+ *
+ * @param port El número de puerto en el que el servidor escuchará las conexiones entrantes.
+ * @param password La contraseña que los clientes deben proporcionar para conectarse al servidor.
+ *
+ * @throw std::runtime_error Si ocurre un error en la inicialización del socket, en `poll`, 
+ *        al aceptar una nueva conexión de cliente o al procesar los datos del cliente.
+ */
 void Server::serverInit(int port, std::string password)
 {
     this->port = port;
@@ -38,6 +63,9 @@ void Server::serverInit(int port, std::string password)
     std::cout << "Server initialized" << std::endl;
 
     this->socketInit();
+
+    Channel chanelGeneral("General");
+    this->channels.push_back(chanelGeneral);
 
     while (Server::Signal == false)
     {
@@ -59,6 +87,17 @@ void Server::serverInit(int port, std::string password)
     }
 }
 
+/**
+ * @brief Inicializa el socket del servidor.
+ *
+ * Esta función crea un socket para el servidor, configura las opciones del socket,
+ * lo establece en modo no bloqueante, lo liga a una dirección y puerto específicos,
+ * y lo pone en modo de escucha para aceptar conexiones entrantes. 
+ * También agrega el socket del servidor a la estructura `poll` para monitorear eventos.
+ *
+ * @throw std::runtime_error Si ocurre un error al crear el socket, configurar opciones,
+ *        establecer el modo no bloqueante, ligar el socket o ponerlo en modo de escucha.
+ */
 void Server::socketInit() 
 {
     int opt = 1;
@@ -90,18 +129,14 @@ void Server::socketInit()
     std::cout << "Server listening on port " << this->port << std::endl;
 }
 
-/* funcion poll: poll() y la estructura pollfd se utilizan para gestionar de manera eficiente múltiples conexiones de clientes. 
-Permiten al servidor monitorear varios descriptores de archivo simultáneamente, reaccionar a eventos de E/S de forma no bloqueante, y manejar nuevas conexiones, datos entrantes y desconexiones de manera ordenada y eficiente. 
-
-Deberia agregar cada socket a la estructura poll, para monitorear cambios
-
-struct pollfd {
- int     fd; //-> file descriptor
- short   events;//-> requested events
- short   revents;//-> returned events
-};
-*/
-
+/**
+ * @brief Acepta una nueva conexión de cliente.
+ *
+ * Esta función acepta una conexión entrante en el socket del servidor, configura el socket del cliente en modo no bloqueante,
+ * crea una nueva instancia de la clase Client y la agrega a la lista de clientes.
+ *
+ * @throw std::runtime_error Si ocurre un error al aceptar la conexión del cliente o al establecer el socket en modo no bloqueante.
+ */
 void Server::acceptClient()
 {
     struct sockaddr_in clientAddress;
@@ -115,9 +150,7 @@ void Server::acceptClient()
     new_poll.fd = clientSocket;
     new_poll.events = POLLIN;
     fds.push_back(new_poll);
-
-    //Crear nueva instancia de la clase Client
-    
+  
     Client newClient;
     
     newClient.SetClientSocket(clientSocket);
@@ -126,8 +159,19 @@ void Server::acceptClient()
     std::cout << "New client connected. IP: " << newClient.GetClientIpAddr() << std::endl;
 
     clients.push_back(newClient);
+
+    //Agregar este cliente al chanel General
+    //this->channels[0].AddUser(newClient.GetClientIpAddr());
 }
 
+/**
+ * @brief Procesa los datos recibidos de un cliente.
+ *
+ * Esta función recibe los datos del cliente, los imprime en la consola y realiza cualquier procesamiento adicional necesario.
+ * Si el cliente se desconecta, cierra el socket del cliente y elimina la información del cliente de la lista de clientes.
+ *
+ * @param clientSocket El descriptor de archivo del socket del cliente.
+ */
 void Server::getClientdata(int clientSocket)
 {
     char buff[1024]; // Buffer para los datos recibidos
@@ -160,6 +204,17 @@ void Server::getClientdata(int clientSocket)
         buff[bytes] = '\0';
         std::cout << "Client <" << clientSocket << "> Data: " << buff << std::endl;
         
-        //Agregar la logica para manejar los datos recibidos (parseo, validacion, etc.)
-    }
+        // Buscar el objeto Client correspondiente al clientSocket
+    //     for (size_t i = 0; i < this->clients.size(); ++i) {
+    //         if (this->clients[i].GetClientSocket() == clientSocket) {
+    //             // Convertir el buffer en string
+    //             std::string data(buff);
+    //             // Crear una instancia de CommandHandler
+    //             CommandHandler cmdHandler;
+    //             // Llamar a la función para manejar los datos recibidos
+    //             cmdHandler.handleClientData(data, *this, this->clients[i]);
+    //             break;
+    //         }
+    //     }
+    // }
 }

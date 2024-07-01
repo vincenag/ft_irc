@@ -12,6 +12,7 @@ SRCS := main.cpp\
 		$(SRC_DIR)/Server.cpp\
 		$(SRC_DIR)/Client.cpp\
 		$(SRC_DIR)/ArgumentsValidator.cpp
+		$(SRC_DIR)/Channel.cpp\
 
 OBJS := $(patsubst %.cpp,$(OBJ_DIR)/%.o,$(notdir $(SRCS)))
 

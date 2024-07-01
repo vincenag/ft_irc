@@ -16,6 +16,7 @@
 #include <cstring>
 
 #include "Client.hpp"
+#include "Channel.hpp"
 
 class Server{
     public:
@@ -36,6 +37,7 @@ class Server{
         std::vector<struct pollfd> fds; // Vector of file descriptors for the clients
         struct pollfd new_poll; // File descriptor for the new client
         std::vector<Client> clients; // Vector of clients
+        std::vector<Channel> channels; // Vector of chanels
     
         void socketInit();
         void acceptClient();

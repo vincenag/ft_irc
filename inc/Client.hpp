@@ -16,10 +16,13 @@ class Client
 
         int GetClientSocket();
         std::string GetClientIpAddr();
+        std::string GetClientNick();
     
     private:
         int clientSocket;
         std::string clientIpAddr;
+        std::string clientNick;
+
 };
 
 #endif
