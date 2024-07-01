@@ -161,7 +161,7 @@ void Server::acceptClient()
     clients.push_back(newClient);
 
     //Agregar este cliente al chanel General
-    this->channels[0].AddUser(newClient.GetClientIpAddr());
+    //this->channels[0].AddUser(newClient.GetClientIpAddr());
 }
 
 /**
@@ -204,6 +204,17 @@ void Server::getClientdata(int clientSocket)
         buff[bytes] = '\0';
         std::cout << "Client <" << clientSocket << "> Data: " << buff << std::endl;
         
-        //Agregar la logica para manejar los datos recibidos (parseo, validacion, etc.)
-    }
+        // Buscar el objeto Client correspondiente al clientSocket
+    //     for (size_t i = 0; i < this->clients.size(); ++i) {
+    //         if (this->clients[i].GetClientSocket() == clientSocket) {
+    //             // Convertir el buffer en string
+    //             std::string data(buff);
+    //             // Crear una instancia de CommandHandler
+    //             CommandHandler cmdHandler;
+    //             // Llamar a la función para manejar los datos recibidos
+    //             cmdHandler.handleClientData(data, *this, this->clients[i]);
+    //             break;
+    //         }
+    //     }
+    // }
 }

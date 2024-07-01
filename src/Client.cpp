@@ -35,3 +35,8 @@ std::string Client::GetClientIpAddr()
 {
     return this->clientIpAddr;
 }
+
+std::string Client::GetClientNick()
+{
+    return this->clientNick;
+}
