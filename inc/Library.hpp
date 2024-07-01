@@ -22,6 +22,7 @@
 #include "Client.hpp"
 #include "Server.hpp"
 #include "ArgumentsValidator.hpp"
+#include "Channel.hpp"
 /* #include "CommandHandler.hpp"
 #include "ServerState.hpp" */
 

@@ -24,7 +24,7 @@ void Client::SetClientSocket(int clientSocket)
 void Client::SetClientIpAddr(std::string clientIpAddr)
 {
     this->clientIpAddr = clientIpAddr;
-#include "Library.hpp"}
+}
 
 int Client::GetClientSocket()
 {
