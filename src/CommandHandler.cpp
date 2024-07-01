@@ -1,6 +1,6 @@
 #include "../inc/CommandHandler.hpp"
 
-CommandHandler::CommandHandler(Server& server) : server(server) {}
+//CommandHandler::CommandHandler(Server& server) : server(server) {}
 
 void CommandHandler::handleCommand(Client &client, const std::string &commandLine)
 {
@@ -18,7 +18,9 @@ void CommandHandler::handleCommand(Client &client, const std::string &commandLin
 
     // segun el comando entramos en la funcion
     // mandamos el cliente y el vector tokens con los argumentos
-    if (command == "NICK") {
+    if (command == "PASS") {
+        processPass(client, tokens);
+    } else if (command == "NICK") {
         processNick(client, tokens);
     } else if (command == "USER") {
         processUser(client, tokens);

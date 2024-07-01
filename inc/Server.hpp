@@ -1,22 +1,9 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-#include <iostream>
-#include <string>
-#include <csignal>
-#include <exception>
-#include <cstdlib>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <poll.h>
-#include <vector>
-#include <fcntl.h>
-#include <arpa/inet.h>
-#include <algorithm>
-#include <cstring>
-
-#include "Client.hpp"
-#include "Channel.hpp"
+#include "Library.hpp"
+class Client;
+//class CommandHandler;
 
 class Server{
     public:
@@ -38,6 +25,7 @@ class Server{
         struct pollfd new_poll; // File descriptor for the new client
         std::vector<Client> clients; // Vector of clients
         std::vector<Channel> channels; // Vector of chanels
+        std::map<int, std::string> clientData; // Map of fd y Nickname    
     
         void socketInit();
         void acceptClient();
