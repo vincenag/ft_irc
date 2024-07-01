@@ -18,7 +18,9 @@ void CommandHandler::handleCommand(Client &client, const std::string &commandLin
 
     // segun el comando entramos en la funcion
     // mandamos el cliente y el vector tokens con los argumentos
-    if (command == "NICK") {
+    if (command == "PASS") {
+        processPass(client, tokens);
+    } else if (command == "NICK") {
         processNick(client, tokens);
     } else if (command == "USER") {
         processUser(client, tokens);

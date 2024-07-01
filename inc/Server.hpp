@@ -3,7 +3,7 @@
 
 #include "Library.hpp"
 class Client;
-class CommandHandler;
+//class CommandHandler;
 
 class Server{
     public:
@@ -24,6 +24,7 @@ class Server{
         std::vector<struct pollfd> fds; // Vector of file descriptors for the clients
         struct pollfd new_poll; // File descriptor for the new client
         std::vector<Client> clients; // Vector of clients
+        std::map<int, std::string> clientData; // Map of fd y Nickname    
     
         void socketInit();
         void acceptClient();

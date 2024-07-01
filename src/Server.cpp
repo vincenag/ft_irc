@@ -159,6 +159,7 @@ void Server::getClientdata(int clientSocket)
     } else { // Imprimir los datos recibidos
         buff[bytes] = '\0';
         std::cout << "Client <" << clientSocket << "> Data: " << buff << std::endl;
+        
         /* CommandHandler commandHandler;
         std::string buffStr(buff);
         commandHandler.handleCommand(this->clients[0], buff); */
