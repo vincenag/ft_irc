@@ -1,4 +1,4 @@
-#include "Server.hpp"
+#include "Library.hpp"
 
 Server::Server(){this->serverSocket = -1;}
 
@@ -18,6 +18,7 @@ Server &Server::operator=(Server const &src) // modificar esto luego
         this->new_poll = src.new_poll;
         this->clients = src.clients;
         this->channels = src.channels;
+        this->clientData = src.clientData;
     }
     return *this;
 }
@@ -155,10 +156,13 @@ void Server::acceptClient()
     
     newClient.SetClientSocket(clientSocket);
     newClient.SetClientIpAddr(inet_ntoa(clientAddress.sin_addr));
+    newClient.SetAuthenticated(false);
 
     std::cout << "New client connected. IP: " << newClient.GetClientIpAddr() << std::endl;
 
     clients.push_back(newClient);
+
+    send(clientSocket, "Welcome to the IRC Chat Server, Please enter the password to continue\n", 70, 0);
 
     //Agregar este cliente al chanel General
     //this->channels[0].AddUser(newClient.GetClientIpAddr());
@@ -182,39 +186,79 @@ void Server::getClientdata(int clientSocket)
     if (bytes <= 0) { // Comprobar si el cliente se desconectó
         std::cout << "Client <" << clientSocket << "> Disconnected" << std::endl;
         
-        // Limpiar la información del cliente y cerrar el socket del cliente
-        close(clientSocket);
-        
-        // Eliminar el cliente del vector de clientes
+        RemoveClient(clientSocket);
+
+    } else { // Procesar los datos recibidos
+        buff[bytes] = '\0';
+        // Convertir el buffer en string
+        std::string data(buff);
+        // Buscar el objeto Client correspondiente al clientSocket
+        Client* client = nullptr;
         for (size_t i = 0; i < this->clients.size(); ++i) {
             if (this->clients[i].GetClientSocket() == clientSocket) {
-                this->clients.erase(this->clients.begin() + i);
-                break;
-            }
-        }     
-        // Eliminar el `pollfd` correspondiente del vector `fds`
-        for (size_t i = 0; i < this->fds.size(); ++i) {
-            if (this->fds[i].fd == clientSocket) {
-                this->fds.erase(this->fds.begin() + i);
+                client = &this->clients[i];
                 break;
             }
         }
-        close(clientSocket);
-    } else { // Imprimir los datos recibidos
-        buff[bytes] = '\0';
-        std::cout << "Client <" << clientSocket << "> Data: " << buff << std::endl;
-        
-        // Buscar el objeto Client correspondiente al clientSocket
-    //     for (size_t i = 0; i < this->clients.size(); ++i) {
-    //         if (this->clients[i].GetClientSocket() == clientSocket) {
-    //             // Convertir el buffer en string
-    //             std::string data(buff);
-    //             // Crear una instancia de CommandHandler
-    //             CommandHandler cmdHandler;
-    //             // Llamar a la función para manejar los datos recibidos
-    //             cmdHandler.handleClientData(data, *this, this->clients[i]);
-    //             break;
-    //         }
-    //     }
+        if (client != nullptr) {
+            // Crear una instancia de CommandHandler y manejar el comando
+            CommandHandler cmdHandler;
+            cmdHandler.handleCommand(data, *this, *client);
+        }
     }
+}
+
+void Server::RemoveClient(int clientSocket)
+{
+    for (size_t i = 0; i < this->clients.size(); i++)
+    {
+        if (this->clients[i].GetClientSocket() == clientSocket)
+        {
+            this->clients.erase(this->clients.begin() + i);
+            break;
+        }
+    }
+    for (size_t i = 0; i < this->fds.size(); i++)
+    {
+        if (this->fds[i].fd == clientSocket)
+        {
+            this->fds.erase(this->fds.begin() + i);
+            break;
+        }
+    }
+    close(clientSocket);
+}
+
+void Server::JoinChannel(Client &client, std::string channelName)
+{
+    for (size_t i = 0; i < this->channels.size(); i++)
+    {
+        if (this->channels[i].GetName() == channelName)
+        {
+            this->channels[i].AddUser(client.GetClientSocket());
+            return;
+        }
+    }
+
+    // Si el canal no existe, se crea uno nuevo
+    Channel newChannel(channelName);
+    newChannel.AddUser(client.GetClientSocket());
+    this->channels.push_back(newChannel);
+    std::cout << "Client <" << client.GetClientSocket() << "> has created a new channel: " << channelName << std::endl;
+}
+
+std::string Server::GetPassword()
+{
+    return this->password;
+}
+
+std::vector<Channel> Server::GetChannels()
+{
+    return this->channels;
+}
+
+
+std::vector<Client> Server::GetClients()
+{
+    return this->clients;
 }

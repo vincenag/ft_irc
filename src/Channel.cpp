@@ -37,18 +37,17 @@ std::string Channel::GetName()
     return this->name;
 }
 
-void Channel::AddUser(std::string user)
+void Channel::AddUser(int clientSocket)
 {
-    this->users.push_back(user);
-    std::cout << "User " << user << " added to chanel " << this->name << std::endl;
+    this->users.push_back(clientSocket);
 }
 
-void Channel::RemoveUser(std::string user)
+void Channel::RemoveUser(int clientSocket)
 {
-    this->users.erase(std::remove(this->users.begin(), this->users.end(), user), this->users.end());
+    this->users.erase(std::remove(this->users.begin(), this->users.end(), clientSocket), this->users.end());
 }
 
-std::vector<std::string> Channel::GetUsers()
+std::vector<int> Channel::GetUsers()
 {
     return this->users;
 }

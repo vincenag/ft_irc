@@ -12,6 +12,9 @@ Client &Client::operator=(Client const &src)
     {
         this->clientSocket = src.clientSocket;
         this->clientIpAddr = src.clientIpAddr;
+        this->clientNick = src.clientNick;
+        this->Authenticated = src.Authenticated;
+
     }
     return *this;
 }
@@ -39,4 +42,19 @@ std::string Client::GetClientIpAddr()
 std::string Client::GetClientNick()
 {
     return this->clientNick;
+}
+
+void Client::SetClientNick(std::string clientNick)
+{
+    this->clientNick = clientNick;
+}
+
+bool Client::GetAuthenticated()
+{
+    return this->Authenticated;
+}
+
+void Client::SetAuthenticated(bool Authenticated)
+{
+    this->Authenticated = Authenticated;
 }

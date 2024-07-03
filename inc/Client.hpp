@@ -16,12 +16,18 @@ class Client
 
         int GetClientSocket();
         std::string GetClientIpAddr();
+
         std::string GetClientNick();
+        void SetClientNick(std::string clientNick);
+
+        bool GetAuthenticated();
+        void SetAuthenticated(bool Authenticated);
     
     private:
         int clientSocket;
         std::string clientIpAddr;
         std::string clientNick;
+        bool Authenticated;
 
 };
 

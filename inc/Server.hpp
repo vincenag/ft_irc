@@ -15,6 +15,14 @@ class Server{
         static void signalHandler(int signal);
         void serverInit(int port, std::string password);
 
+        void JoinChannel(Client &client, std::string channelName);
+
+        std::string GetPassword();
+        void RemoveClient(int clientSocket);
+
+        std::vector<Client> GetClients();
+        std::vector<Channel> GetChannels();
+
     private:
         std::string password;
         int port;
@@ -30,6 +38,7 @@ class Server{
         void socketInit();
         void acceptClient();
         void getClientdata(int clientSocket);
+
 
 };
 

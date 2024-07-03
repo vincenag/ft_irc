@@ -17,14 +17,14 @@ class Channel {
         void SetName(std::string name);
         std::string GetName();
 
-        void AddUser(std::string user);
-        void RemoveUser(std::string user);
+        void AddUser(int clientSocket);
+        void RemoveUser(int clientSocket);
 
-        std::vector<std::string> GetUsers();
+        std::vector<int> GetUsers();
     
     private:
         std::string name;
-        std::vector<std::string> users;
+        std::vector<int> users;
 };
 
 #endif
