@@ -65,9 +65,6 @@ void Server::serverInit(int port, std::string password)
 
     this->socketInit();
 
-    Channel chanelGeneral("General");
-    this->channels.push_back(chanelGeneral);
-
     while (Server::Signal == false)
     {
         int ret = poll(&fds[0], fds.size(), -1); // -1: Esperar indefinidamente hasta que se produzca un evento
@@ -163,9 +160,6 @@ void Server::acceptClient()
     clients.push_back(newClient);
 
     send(clientSocket, "Welcome to the IRC Chat Server, Please enter the password to continue\n", 70, 0);
-
-    //Agregar este cliente al chanel General
-    //this->channels[0].AddUser(newClient.GetClientIpAddr());
 }
 
 /**
