@@ -36,7 +36,7 @@ bool Server::Signal = false;
 void Server::signalHandler(int signal)
 {
     (void)signal;
-    std::cout << "Signal received" << std::endl;
+    std::cout << Server::getCurrentTime() << GREEN << "[+] Signal received" << RESET << std::endl;
     Signal = true;
 }
 
@@ -61,7 +61,8 @@ void Server::serverInit(int port, std::string password)
     this->port = port;
     this->password = password;
 
-    std::cout << "Server initialized" << std::endl;
+    std::cout   << Server::getCurrentTime()
+                << GREEN << "[+] Server initialized" << RESET << std::endl;
 
     this->socketInit();
 
@@ -124,8 +125,11 @@ void Server::socketInit()
     new_poll.events = POLLIN; // POLLIN: Hay datos para leer
     fds.push_back(new_poll);
 
-    std::cout << "Server listening on port " << this->port << std::endl;
+    std::cout   << Server::getCurrentTime() 
+                << GREEN << "[+] Server listening on port " 
+                << MAGENTA << this->port << RESET << std::endl;
 }
+
 
 /**
  * @brief Acepta una nueva conexión de cliente.
@@ -155,12 +159,39 @@ void Server::acceptClient()
     newClient.SetClientIpAddr(inet_ntoa(clientAddress.sin_addr));
     newClient.SetAuthenticated(false);
 
-    std::cout << "New client connected. IP: " << newClient.GetClientIpAddr() << std::endl;
+    std::cout   << Server::getCurrentTime() 
+                << GREEN << "[+] New client connected. IP: " 
+                << MAGENTA << newClient.GetClientIpAddr() << RESET << std::endl;
 
     clients.push_back(newClient);
 
-    send(clientSocket, "Welcome to the IRC Chat Server, Please enter the password to continue\n", 70, 0);
+    printIRCChatBanner(clientSocket);
 }
+
+/**
+    * @brief Imprime un banner en la consola para cada cliente que se conecta.
+ */
+void Server::printIRCChatBanner(int clientSocket)
+{
+    std::string banner = RED    "  8 8888 8 888888888o.       ,o888888o.        \n" RESET;
+    banner += GREEN             "  8 8888 8 8888    `88.     8888     `88.      \n" RESET;
+    banner += YELLOW            "  8 8888 8 8888     `88  ,8 8888       `8.     \n" RESET;
+    banner += BLUE              "  8 8888 8 8888     ,88  88 8888               \n" RESET;
+    banner += MAGENTA           "  8 8888 8 8888.   ,88'  88 8888               \n" RESET;
+    banner += CYAN              "  8 8888 8 888888888P'   88 8888               \n" RESET;
+    banner += RED               "  8 8888 8 8888`8b       88 8888               \n" RESET;
+    banner += GREEN             "  8 8888 8 8888 `8b.     `8 8888       .8'     \n" RESET;
+    banner += YELLOW            "  8 8888 8 8888   `8b.      8888     ,88'      \n" RESET;
+    banner += BLUE              "  8 8888 8 8888     `88.     `8888888P'        \n" RESET;
+
+
+    banner += "\n\n";
+    banner += GREEN "** Welcome to the IRC Chat **\n\n" RESET;
+    banner += CYAN "Please enter the password to continue: " RESET "PASS <password>\n";
+
+    send(clientSocket, banner.c_str(), banner.size(), 0);
+}
+
 
 /**
  * @brief Procesa los datos recibidos de un cliente.
@@ -178,7 +209,8 @@ void Server::getClientdata(int clientSocket)
     ssize_t bytes = recv(clientSocket, buff, sizeof(buff) - 1, 0); // Recibir los datos
 
     if (bytes <= 0) { // Comprobar si el cliente se desconectó
-        std::cout << "Client <" << clientSocket << "> Disconnected" << std::endl;
+        std::cout   << Server::getCurrentTime()
+                    << RED << "[-] Client <" << clientSocket << "> Disconnected" << RESET << std::endl;
         
         RemoveClient(clientSocket);
 
@@ -231,13 +263,15 @@ void Server::JoinChannel(Client &client, std::string channelName)
         {
             if (this->channels[i].UserExists(client.GetClientSocket()))
             {
-                std::string Msg = RED "ERROR: You are already in this channel\n" RESET;
+                std::string Msg = RED "[-] ERROR: You are already in this channel\n" RESET;
                 send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
                 return;
             }
             this->channels[i].AddUser(client.GetClientSocket());
-            std::cout << "Client <" << client.GetClientSocket() << "> joined channel " << channelName << std::endl;
-            std::string Msg = GREEN "You have joined the channel\n" RESET;
+            std::cout   << Server::getCurrentTime() 
+                        << GREEN << "[+] Client <" << client.GetClientSocket() << "> joined channel " 
+                        << MAGENTA << channelName << RESET << std::endl;
+            std::string Msg = GREEN "[+] You have joined the channel\n" RESET;
             send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
             return;
         }
@@ -247,7 +281,9 @@ void Server::JoinChannel(Client &client, std::string channelName)
     Channel newChannel(channelName);
     newChannel.AddUser(client.GetClientSocket());
     this->channels.push_back(newChannel);
-    std::cout << "Client <" << client.GetClientSocket() << "> has created a new channel: " << channelName << std::endl;
+    std::cout   << Server::getCurrentTime() 
+                << GREEN << "[+] Client <" << client.GetClientSocket() << "> has created a new channel: " 
+                << MAGENTA << channelName << RESET << std::endl;
     std::string Msg = GREEN "Channel created successfully\n" RESET;
     send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
 }
@@ -266,4 +302,24 @@ std::vector<Channel> Server::GetChannels()
 std::vector<Client> Server::GetClients()
 {
     return this->clients;
+}
+
+/**
+    * @brief Función que obtiene fecha y hora actuales
+ */
+
+std::string Server::getCurrentTime()
+{
+    std::time_t now = std::time(0);
+    std::tm *nowLocal = std::localtime(&now);
+
+    std::stringstream ss;
+    ss << CYAN << std::setfill('0') << std::setw(2) << nowLocal->tm_mday << '/'
+       << std::setfill('0') << std::setw(2) << (nowLocal->tm_mon + 1) << "/"
+       << (nowLocal->tm_year + 1900) << " " << RESET
+       << YELLOW << std::setfill('0') << std::setw(2) << nowLocal->tm_hour << ":" 
+       << std::setfill('0') << std::setw(2) << nowLocal->tm_min << ":" 
+       << std::setfill('0') << std::setw(2) << nowLocal->tm_sec << " " << RESET;
+
+    return ss.str();
 }

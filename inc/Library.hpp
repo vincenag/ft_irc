@@ -30,6 +30,8 @@
 #include <map>
 #include <stdexcept>
 #include <cstdlib>
+#include <ctime>
+#include <iomanip>
 
 #include "Client.hpp"
 #include "Server.hpp"

@@ -23,6 +23,9 @@ class Server{
         std::vector<Client> GetClients();
         std::vector<Channel> GetChannels();
 
+        // miembro para obtener fecha y hora actuales
+        static std::string getCurrentTime();
+
     private:
         std::string password;
         int port;
@@ -39,7 +42,9 @@ class Server{
         void acceptClient();
         void getClientdata(int clientSocket);
 
-
+        //funciones auxiliares
+        // banner para cada cliente que se conecte
+        static void printIRCChatBanner(int clientSocket);
 };
 
 #endif

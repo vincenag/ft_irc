@@ -60,14 +60,17 @@ void CommandHandler::processPass(Client &client, Server &server, const std::vect
     std::string password = args[0];
     if (server.GetPassword() == password) {
         client.SetAuthenticated(true);
-        std::cout << "Client <" << client.GetClientSocket() << "> authenticated" << std::endl;
+        std::cout   << Server::getCurrentTime() 
+                    << GREEN << "[+] Client <" << client.GetClientSocket() << "> authenticated" << RESET << std::endl;
         Msg = GREEN "You have been authenticated. Use NICK command to continue\n" RESET;
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
     } else {
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-        std::cout << "Client <" << client.GetClientSocket() << "> failed to authenticate" << std::endl;
+        std::cout   << Server::getCurrentTime() 
+                    << RED << "[-] Client <" << client.GetClientSocket() << "> failed to authenticate" << RESET << std::endl;
         server.RemoveClient(client.GetClientSocket());
-        std::cout << "Client <" << client.GetClientSocket() << "> removed" << std::endl;
+        std::cout   << Server::getCurrentTime() 
+                    << BLUE << "Client <" << client.GetClientSocket() << "> removed" << RESET << std::endl;
     }
 }
 
@@ -86,13 +89,16 @@ void CommandHandler::processNick(Client &client, Server &server, const std::vect
         if (server.GetClients()[i].GetClientNick() == nick && server.GetClients()[i].GetClientSocket() != client.GetClientSocket()){
             Msg = RED "ERROR: Nickname already in use\n" RESET;
             send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-            std::cout << "Client <" << client.GetClientSocket() << "> failed to set nickname" << std::endl;
+            std::cout   << Server::getCurrentTime() 
+                        << RED << "[-] Client <" << client.GetClientSocket() << "> failed to set nickname" << RESET << std::endl;
             return;
         }
     }
 
     client.SetClientNick(nick);
-    std::cout << "Client <" << client.GetClientSocket() << "> set nickname to " << nick << std::endl;
+    std::cout   << Server::getCurrentTime() 
+                << GREEN << "[+] Client <" << client.GetClientSocket() << "> set nickname to " 
+                << MAGENTA << nick << RESET << std::endl;
     Msg = GREEN "Your Nickname has been set\n" RESET;
     send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
 }
