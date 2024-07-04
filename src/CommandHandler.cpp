@@ -114,9 +114,6 @@ void CommandHandler::processJoin(Client &client, Server &server, const std::vect
 
     // Usa el servidor para añadir el cliente al canal
     server.JoinChannel(client, channel);
-    std::cout << "Client <" << client.GetClientSocket() << "> joined channel " << channel << std::endl;
-    Msg = GREEN "You have joined the channel\n" RESET;
-    send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
 }
 
 void CommandHandler::processPrivmsg(Client &client, Server &server, const std::vector<std::string> &args)
@@ -140,17 +137,26 @@ void CommandHandler::processPrivmsg(Client &client, Server &server, const std::v
     // Verificar si el mensaje tiene el formato correcto
     size_t pos = message.find(":");
     if (pos == std::string::npos) {
-        Msg = RED "ERROR: Invalid message format. Use PRIVMSG <channel> :<message>\n" RESET;
+        Msg = RED "ERROR: Invalid message format. Use PRIVMSG <nick or #channel> :<message>\n" RESET;
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
         return;
     }
 
     std::string msgContent = message.substr(pos + 1); // Obtener el contenido del mensaje
 
-    // Buscar el canal
+    //Buscar el destinatario
+    if (channel[0] == '#') {
+        sendToChannel(server, channel, msgContent, client);
+    } else {
+        sendToClient(server, channel, msgContent, client);
+    }
+    
+}
+
+void CommandHandler::sendToChannel(Server &server, const std::string &channelName, const std::string &msg, Client &client)
+{
     for (size_t i = 0; i < server.GetChannels().size(); ++i) {
-        if (server.GetChannels()[i].GetName() == channel) {
-            // Verificar si el cliente pertenece al canal
+        if (server.GetChannels()[i].GetName() == channelName) {
             std::vector<int> users = server.GetChannels()[i].GetUsers();
             bool found = false;
             for (size_t j = 0; j < users.size(); ++j) {
@@ -159,19 +165,33 @@ void CommandHandler::processPrivmsg(Client &client, Server &server, const std::v
                     break;
                 }
             }
-            // Enviar el mensaje a todos los usuarios del canal
-            if (found) {
-                for (size_t j = 0; j < users.size(); ++j) {
-                    if (users[j] != client.GetClientSocket()) {
-                        std::string msg = client.GetClientNick() + YELLOW " PRIVMSG " RESET + channel + " :" + msgContent + "\n";
-                        send(users[j], msg.c_str(), msg.size(), 0);
-                    }
-                }
+            if (!found) {
+                std::string Msg = RED "ERROR: You are not in the channel\n" RESET;
+                send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
                 return;
             }
+            for (size_t j = 0; j < users.size(); ++j) {
+                if (users[j] != client.GetClientSocket()) {
+                    std::string message = client.GetClientNick() + YELLOW " PRIVMSG " RESET + channelName + " :" + msg + "\n";
+                    send(users[j], message.c_str(), message.size(), 0);
+                }
+            }
+            return;
         }
     }
-    //Si el canal no existe
-    Msg = RED "ERROR: Channel does not exist or you are not in the channel\n" RESET;
+    std::string Msg = RED "ERROR: Channel does not exist\n" RESET;
+    send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+}
+
+void CommandHandler::sendToClient(Server &server, const std::string &clientNick, const std::string &msg, Client &client)
+{
+    for (size_t i = 0; i < server.GetClients().size(); ++i) {
+        if (server.GetClients()[i].GetClientNick() == clientNick) {
+            std::string message = client.GetClientNick() + YELLOW " PRIVMSG " RESET + clientNick + " :" + msg + "\n";
+            send(server.GetClients()[i].GetClientSocket(), message.c_str(), message.size(), 0);
+            return;
+        }
+    }
+    std::string Msg = RED "ERROR: User does not exist\n" RESET;
     send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
 }

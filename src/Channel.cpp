@@ -51,3 +51,8 @@ std::vector<int> Channel::GetUsers()
 {
     return this->users;
 }
+
+bool Channel::UserExists(int clientSocket)
+{
+    return std::find(this->users.begin(), this->users.end(), clientSocket) != this->users.end();
+}

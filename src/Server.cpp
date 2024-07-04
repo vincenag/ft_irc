@@ -229,7 +229,16 @@ void Server::JoinChannel(Client &client, std::string channelName)
     {
         if (this->channels[i].GetName() == channelName)
         {
+            if (this->channels[i].UserExists(client.GetClientSocket()))
+            {
+                std::string Msg = RED "ERROR: You are already in this channel\n" RESET;
+                send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+                return;
+            }
             this->channels[i].AddUser(client.GetClientSocket());
+            std::cout << "Client <" << client.GetClientSocket() << "> joined channel " << channelName << std::endl;
+            std::string Msg = GREEN "You have joined the channel\n" RESET;
+            send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
             return;
         }
     }
@@ -239,6 +248,8 @@ void Server::JoinChannel(Client &client, std::string channelName)
     newChannel.AddUser(client.GetClientSocket());
     this->channels.push_back(newChannel);
     std::cout << "Client <" << client.GetClientSocket() << "> has created a new channel: " << channelName << std::endl;
+    std::string Msg = GREEN "Channel created successfully\n" RESET;
+    send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
 }
 
 std::string Server::GetPassword()

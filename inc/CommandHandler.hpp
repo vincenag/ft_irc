@@ -17,8 +17,11 @@ class CommandHandler
         void processJoin(Client &client, Server &server, const std::vector<std::string> &args);
         void processPrivmsg(Client &client, Server &server, const std::vector<std::string> &args);
 
+
         // Funciones auxiliares
         std::vector<std::string> splitCommand(const std::string &commandLine);
+        void sendToChannel(Server &server, const std::string &channelName, const std::string &msg, Client &client);
+        void sendToClient(Server &server, const std::string &clientNick, const std::string &msg, Client &client);
 };
 
 #endif

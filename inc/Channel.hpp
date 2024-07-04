@@ -21,7 +21,9 @@ class Channel {
         void RemoveUser(int clientSocket);
 
         std::vector<int> GetUsers();
-    
+
+        bool UserExists(int clientSocket);
+
     private:
         std::string name;
         std::vector<int> users;
