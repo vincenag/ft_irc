@@ -1,0 +1,4 @@
+- Server.hpp añadido miembro en private printIRCChatBanner, para mostrar banner en el cliente
+- Server.hpp añadido miembro en public getCurrentTime, para mostrar la fecha y hora
+- Main.cpp cambiado banner, ahora se muestra en el server este banner (Cambiar el nombre de la funcion)
+- Parseado Nick y Join en CommandHandler.cpp 
