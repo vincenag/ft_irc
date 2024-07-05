@@ -263,7 +263,7 @@ void Server::JoinChannel(Client &client, std::string channelName)
         {
             if (this->channels[i].UserExists(client.GetClientSocket()))
             {
-                std::string Msg = RED "[-] ERROR: You are already in this channel\n" RESET;
+                std::string Msg = RED "ERROR: You are already in this channel\n" RESET;
                 send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
                 return;
             }
@@ -271,7 +271,7 @@ void Server::JoinChannel(Client &client, std::string channelName)
             std::cout   << Server::getCurrentTime() 
                         << GREEN << "[+] Client <" << client.GetClientSocket() << "> joined channel " 
                         << MAGENTA << channelName << RESET << std::endl;
-            std::string Msg = GREEN "[+] You have joined the channel\n" RESET;
+            std::string Msg = GREEN "You have joined the channel\n" RESET;
             send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
             return;
         }

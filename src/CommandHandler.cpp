@@ -35,9 +35,10 @@ void CommandHandler::handleCommand(const std::string &commandLine, Server &serve
         processTopic(client, tokens);
     } else if (command == "MODE") {
         processMode(client, tokens);
-    } else {
-        std::cout << "Unknown command: " << command << std::endl;
-    } */
+    } */ else {
+        std::string msg = RED "ERROR: Unknown command\n" RESET;
+        send(client.GetClientSocket(), msg.c_str(), msg.size(), 0);
+    }
 }
 
 std::vector<std::string> CommandHandler::splitCommand(const std::string &commandLine)
@@ -79,27 +80,37 @@ void CommandHandler::processNick(Client &client, Server &server, const std::vect
     std::string Msg;
 
     if (args.size() < 1) {
-        Msg = RED "ERROR: NICK command requires a Nickname\n" RESET;
+        Msg = RED "ERROR: NICK command requires a Nickname: " RESET "NICK <nickname>\n";
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
         return;
     }
     std::string nick = args[0];
-    // Comprobar si el nick ya está en uso
+
+    // Si el cliente ya tiene este nick, enviamos un mensaje de error
+    if (client.GetClientNick() == nick) {
+        Msg = RED "ERROR: Nickname already set\n" RESET;
+        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+        return;
+    }
+
+    // Comprobar si el nick ya está en uso en el server
     for (size_t i = 0; i < server.GetClients().size(); i++) {
         if (server.GetClients()[i].GetClientNick() == nick && server.GetClients()[i].GetClientSocket() != client.GetClientSocket()){
             Msg = RED "ERROR: Nickname already in use\n" RESET;
             send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-            std::cout   << Server::getCurrentTime() 
-                        << RED << "[-] Client <" << client.GetClientSocket() << "> failed to set nickname" << RESET << std::endl;
+            // Obviar estos mensajes en el server, creo que no son necesarios, solo mostrar en el cliente
+            /* std::cout   << Server::getCurrentTime() 
+                        << RED << "[-] Client <" << client.GetClientSocket() << "> failed to set nickname" << RESET << std::endl; */
             return;
         }
     }
 
+    // Si el nick es válido, lo establecemos
     client.SetClientNick(nick);
     std::cout   << Server::getCurrentTime() 
                 << GREEN << "[+] Client <" << client.GetClientSocket() << "> set nickname to " 
                 << MAGENTA << nick << RESET << std::endl;
-    Msg = GREEN "Your Nickname has been set\n" RESET;
+    Msg = GREEN "Your Nickname has been set. Use JOIN command for create channel\n" RESET;
     send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
 }
 
@@ -107,13 +118,13 @@ void CommandHandler::processJoin(Client &client, Server &server, const std::vect
 {
     std::string Msg;
     if (args.size() < 1) {
-        Msg = RED "ERROR: JOIN command requires a channel\n" RESET;
+        Msg = RED "ERROR: JOIN command requires a channel " RESET "JOIN <#channel>\n";
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
         return;
     }
     std::string channel = args[0];
     if (channel[0] != '#') {
-        Msg = RED "ERROR: Channel name must start with '#'\n" RESET;
+        Msg = RED "ERROR: Channel name must start with '#': " RESET "JOIN <#channel>\n";
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
         return;
     }

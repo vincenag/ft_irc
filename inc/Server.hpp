@@ -42,7 +42,6 @@ class Server{
         void acceptClient();
         void getClientdata(int clientSocket);
 
-        //funciones auxiliares
         // banner para cada cliente que se conecte
         static void printIRCChatBanner(int clientSocket);
 };
