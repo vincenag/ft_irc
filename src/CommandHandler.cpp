@@ -373,15 +373,8 @@ void CommandHandler::sendToClient(Server &server, const std::string &clientNick,
 
 bool CommandHandler::handleOperatorCommand(Client &client, Server &server, const std::string &channelName, const std::string &command)
 {
-    //std::vector<std::string> args; splitCommand(command);
     for (size_t i = 0; i < server.GetChannels().size(); ++i) {
         if (server.GetChannels()[i].GetName() == channelName) {
-
-            // comprobaciones de operador
-            printf("client socket: %d\n", client.GetClientSocket());
-            printf("channel: %s\n", server.GetChannels()[i].GetName().c_str());
-            printf("is operator: %d\n", server.GetChannels()[i].isOperator(client.GetClientSocket()));
-
             if (server.GetChannels()[i].isOperator(client.GetClientSocket())) {
                 // Ejecutar comando con privilegios de operador
                 /* if (command == "KICK") {

@@ -23,6 +23,7 @@ class Channel
         bool UserExists(int clientSocket);
 
         // operador de canal
+        std::set<int> operators; // Almacenamos sockets de los operadores
         bool isOperator(int clientSocket) const;
         void addOperator(int clientSocket);
         void removeOperator(int clientSocket);
@@ -30,7 +31,6 @@ class Channel
     private:
         std::string name;
         std::vector<int> users;
-        std::set<int> operators; // Almacenamos sockets de los operadores
 };
 
 #endif

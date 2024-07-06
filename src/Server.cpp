@@ -271,13 +271,13 @@ void Server::JoinChannel(Client &client, std::string channelName)
                 return;
             }
             this->channels[i].AddUser(client.GetClientSocket());
-            //eliminar al cliente como operador
-            this->channels[i].removeOperator(client.GetClientSocket());
             std::cout   << Server::getCurrentTime() 
                         << GREEN << "[+] Client <" << client.GetClientSocket() << "> joined channel " 
                         << MAGENTA << channelName << RESET << std::endl;
             std::string Msg = GREEN "You have joined the channel\n" RESET;
             send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+
+            
             return;
         }
     }
@@ -299,8 +299,12 @@ void Server::JoinChannel(Client &client, std::string channelName)
         std::string Msg = GREEN "Channel created successfully. You are now " BLUE "Admin\n" RESET;
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
         newChannel.addOperator(client.GetClientSocket()); //Asignar como operador al creador del canal
+        //verificar la posicion del socket dentro de std::set
+        std::set<int>::iterator it = newChannel.operators.begin();
+        for (int i = 0; i < 3 && it != newChannel.operators.end(); ++i, ++it) {
+            printf("socket: %d\n", *it);
+        }
     }
-
 }
 
 std::string Server::GetPassword()
