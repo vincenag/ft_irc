@@ -257,10 +257,13 @@ void Server::RemoveClient(int clientSocket)
 
 void Server::JoinChannel(Client &client, std::string channelName)
 {
+    // Comprobar si el canal ya existe
+    bool channelFound = false;
     for (size_t i = 0; i < this->channels.size(); i++)
     {
         if (this->channels[i].GetName() == channelName)
         {
+            channelFound = true;
             if (this->channels[i].UserExists(client.GetClientSocket()))
             {
                 std::string Msg = RED "ERROR: You are already in this channel\n" RESET;
@@ -268,6 +271,8 @@ void Server::JoinChannel(Client &client, std::string channelName)
                 return;
             }
             this->channels[i].AddUser(client.GetClientSocket());
+            //eliminar al cliente como operador
+            this->channels[i].removeOperator(client.GetClientSocket());
             std::cout   << Server::getCurrentTime() 
                         << GREEN << "[+] Client <" << client.GetClientSocket() << "> joined channel " 
                         << MAGENTA << channelName << RESET << std::endl;
@@ -277,27 +282,25 @@ void Server::JoinChannel(Client &client, std::string channelName)
         }
     }
 
-    // Si el canal no existe, se crea uno nuevo
-    Channel newChannel(channelName);
-    newChannel.AddUser(client.GetClientSocket());
-    newChannel.addOperator(client.GetClientSocket()); //Asignar como operador al creador del canal
-    
-    // comprobaciones de que se añade correctamente el canal
-    /* printf("Client: %d\n", client.GetClientSocket());
-    printf("Channel: %s\n", channelName.c_str());
-    printf("primera posicion del std::set %d\n", *newChannel.GetUsers().begin()); */
-    
-    this->channels.push_back(newChannel);
-    std::cout   << Server::getCurrentTime() 
-                << GREEN << "[+] Client <" << client.GetClientSocket() << "> has created a new channel: " 
-                << MAGENTA << channelName << RESET << std::endl;
-    std::cout   << Server::getCurrentTime()
-                << BLUE << "Assigned as Admin of channel: " 
-                << MAGENTA << channelName << RESET 
-                << BLUE << " to Client: "
-                << MAGENTA << client.GetClientSocket() << RESET << std::endl;
-    std::string Msg = GREEN "Channel created successfully. You are now " BLUE "Admin\n" RESET;
-    send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+    // Si el canal no existe, se crea uno nuevo y añade al cliente como operador
+    if (!channelFound)
+    {
+        Channel newChannel(channelName);
+        newChannel.AddUser(client.GetClientSocket());
+        this->channels.push_back(newChannel);
+        std::cout   << Server::getCurrentTime() 
+                    << GREEN << "[+] Client <" << client.GetClientSocket() << "> has created a new channel: " 
+                    << MAGENTA << channelName << RESET << std::endl;
+        std::cout   << Server::getCurrentTime()
+                    << BLUE << "Assigned as Admin of channel: " 
+                    << MAGENTA << channelName << RESET 
+                    << BLUE << " to Client: "
+                    << MAGENTA << client.GetClientSocket() << RESET << std::endl;
+        std::string Msg = GREEN "Channel created successfully. You are now " BLUE "Admin\n" RESET;
+        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+        newChannel.addOperator(client.GetClientSocket()); //Asignar como operador al creador del canal
+    }
+
 }
 
 std::string Server::GetPassword()

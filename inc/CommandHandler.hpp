@@ -29,6 +29,7 @@ class CommandHandler
         
         // metodo para manejar los comandos de operador
         bool handleOperatorCommand(Client &client, Server &server, const std::string &channelName, const std::string &command);
+        
 };
 
 #endif

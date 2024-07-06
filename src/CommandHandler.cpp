@@ -378,13 +378,11 @@ bool CommandHandler::handleOperatorCommand(Client &client, Server &server, const
         if (server.GetChannels()[i].GetName() == channelName) {
 
             // comprobaciones de operador
-            /* printf("client socket: %d\n", client.GetClientSocket());
+            printf("client socket: %d\n", client.GetClientSocket());
             printf("channel: %s\n", server.GetChannels()[i].GetName().c_str());
-            printf("is operator: %d\n", server.GetChannels()[i].isOperator(client.GetClientSocket())); */
-            
+            printf("is operator: %d\n", server.GetChannels()[i].isOperator(client.GetClientSocket()));
+
             if (server.GetChannels()[i].isOperator(client.GetClientSocket())) {
-                //verificar si se cumple la condiciones para ejecutar el comando
-                printf("Client is operator\n");
                 // Ejecutar comando con privilegios de operador
                 /* if (command == "KICK") {
                     processKick(client, server, args);
