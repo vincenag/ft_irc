@@ -56,3 +56,18 @@ bool Channel::UserExists(int clientSocket)
 {
     return std::find(this->users.begin(), this->users.end(), clientSocket) != this->users.end();
 }
+
+bool Channel::isOperator(int clientSocket) const
+{
+    return this->operators.find(clientSocket) == this->operators.end();
+}
+
+void Channel::addOperator(int clientSocket)
+{
+    this->operators.insert(clientSocket);
+}
+
+void Channel::removeOperator(int clientSocket)
+{
+    this->operators.erase(clientSocket);
+}

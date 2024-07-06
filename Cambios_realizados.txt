@@ -2,3 +2,15 @@
 - Server.hpp añadido miembro en public getCurrentTime, para mostrar la fecha y hora
 - Main.cpp cambiado banner, ahora se muestra en el server este banner (Cambiar el nombre de la funcion)
 - Parseado Nick y Join en CommandHandler.cpp 
+- Channel.hpp añadido operador del canal. El admin del canal es el primero que lo crea.
+    - Cada canal contiene un std::set que almacena los operadores de dicho canal, con eso diferenciamos de otros canales
+      puedes ser admin de un canal y usuario normal en otros ya que cada canal maneja sus propios operadores
+    - Para ello se crea una contenedor std::set para añadir el socket del cliente
+        - elementos unicos, si añades un elemento que ya existe dentro no lo añades
+        - se colocan automaticamente de manera ordenada de forma ascendente
+        - no se puede modificar el valor del elemento directamente, primero hay que eliminarlo y luego insertar version modificada
+- En Server.cpp la funcion JoinChannel he añádido una linea(283) para añadir como admin al creador del canal
+- He quitado los include de la clase Channel y añadido dichos include en Library
+- En CommandHandler he añadido funciones para el resto de comandos y una funcion auxiliar
+    comprueba si el que ejecuta dichos comandos de admin lo es o no (handleOperatorCommand)
+    busca por canales, si no existe da error y si no comprueba si es operador del canal o no.

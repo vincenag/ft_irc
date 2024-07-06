@@ -16,12 +16,19 @@ class CommandHandler
         void processNick(Client &client, Server &server, const std::vector<std::string> &args);
         void processJoin(Client &client, Server &server, const std::vector<std::string> &args);
         void processPrivmsg(Client &client, Server &server, const std::vector<std::string> &args);
+        void processKick(Client &client, Server &server, const std::vector<std::string> &args);
+        void processInvite(Client &client, Server &server, const std::vector<std::string> &args);
+        void processTopic(Client &client, Server &server, const std::vector<std::string> &args);
+        void processMode(Client &client, Server &server, const std::vector<std::string> &args);
 
 
         // Funciones auxiliares
         std::vector<std::string> splitCommand(const std::string &commandLine);
         void sendToChannel(Server &server, const std::string &channelName, const std::string &msg, Client &client);
         void sendToClient(Server &server, const std::string &clientNick, const std::string &msg, Client &client);
+        
+        // metodo para manejar los comandos de operador
+        bool handleOperatorCommand(Client &client, Server &server, const std::string &channelName, const std::string &command);
 };
 
 #endif

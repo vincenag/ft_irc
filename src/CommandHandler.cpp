@@ -25,17 +25,15 @@ void CommandHandler::handleCommand(const std::string &commandLine, Server &serve
         processJoin(client, server, tokens);
     } else if (command == "PRIVMSG" && client.GetAuthenticated() == true && client.GetClientNick() != ""){
         processPrivmsg(client, server, tokens);
-    } /*else if (command == "USER") {
-        processUser(client, tokens);
-    }  else if (command == "KICK") {
-        processKick(client, tokens);
-    } else if (command == "INVITE") {
-        processInvite(client, tokens);
-    } else if (command == "TOPIC") {
-        processTopic(client, tokens);
-    } else if (command == "MODE") {
-        processMode(client, tokens);
-    } */ else {
+    } else if ((command == "KICK" || command == "INVITE" || command == "TOPIC" || command == "MODE") && client.GetAuthenticated() == true) {
+        if (!tokens.empty()) {
+            std::string channelName = tokens[0];
+            handleOperatorCommand(client, server, channelName, command);
+        } else {
+            std::string Msg = RED "ERROR: Command requires a channel\n" RESET;
+            send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+        }
+    } else {
         std::string msg = RED "ERROR: Unknown command\n" RESET;
         send(client.GetClientSocket(), msg.c_str(), msg.size(), 0);
     }
@@ -137,7 +135,7 @@ void CommandHandler::processPrivmsg(Client &client, Server &server, const std::v
 {
     std::string Msg;
     if (args.size() < 2) {
-        Msg = RED "ERROR: PRIVMSG command requires a channel and a message\n" RESET;
+        Msg = RED "ERROR: PRIVMSG command requires a channel and a message: " RESET "PRIVMSG <nick or #channel> :<message>\n";
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
         return;
     }
@@ -169,6 +167,166 @@ void CommandHandler::processPrivmsg(Client &client, Server &server, const std::v
     }
     
 }
+
+void CommandHandler::processKick(Client &client, Server &server, const std::vector<std::string> &args)
+{
+    (void)client;
+    (void)server;
+    (void)args;
+    /* std::string Msg;
+    if (args.size() < 2) {
+        Msg = RED "ERROR: KICK command requires a channel and a nickname: " RESET "KICK <#channel> <nickname>\n";
+        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+        return;
+    }
+    std::string channel = args[0];
+    std::string nick = args[1];
+
+    // Buscar el canal y el cliente
+    for (size_t i = 0; i < server.GetChannels().size(); ++i) {
+        if (server.GetChannels()[i].GetName() == channel) {
+            if (server.GetChannels()[i].isOperator(client.GetClientSocket())) {
+                for (size_t j = 0; j < server.GetChannels()[i].GetUsers().size(); ++j) {
+                    if (server.GetChannels()[i].GetUsers()[j] == client.GetClientSocket()) {
+                        std::string Msg = RED "ERROR: You can't kick yourself\n" RESET;
+                        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+                        return;
+                    }
+                    if (server.GetClients()[j].GetClientNick() == nick) {
+                        server.GetChannels()[i].RemoveUser(server.GetClients()[j].GetClientSocket());
+                        std::string Msg = GREEN "You have been kicked from the channel\n" RESET;
+                        send(server.GetClients()[j].GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+                        return;
+                    }
+                }
+                std::string Msg = RED "ERROR: User does not exist in the channel\n" RESET;
+                send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+                return;
+            } else {
+                std::string Msg = RED "ERROR: You are not an operator in this channel\n" RESET;
+                send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+                return;
+            }
+        }
+    }
+    std::string Msg = RED "ERROR: Channel does not exist\n" RESET;
+    send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0); */
+}
+
+void CommandHandler::processInvite(Client &client, Server &server, const std::vector<std::string> &args)
+{
+    (void)client;
+    (void)server;
+    (void)args;
+    /* std::string Msg;
+    if (args.size() < 2) {
+        Msg = RED "ERROR: INVITE command requires a channel and a nickname: " RESET "INVITE <#channel> <nickname>\n";
+        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+        return;
+    }
+    std::string channel = args[0];
+    std::string nick = args[1];
+
+    // Buscar el canal y el cliente
+    for (size_t i = 0; i < server.GetChannels().size(); ++i) {
+        if (server.GetChannels()[i].GetName() == channel) {
+            if (server.GetChannels()[i].isOperator(client.GetClientSocket())) {
+                for (size_t j = 0; j < server.GetClients().size(); ++j) {
+                    if (server.GetClients()[j].GetClientNick() == nick) {
+                        server.GetChannels()[i].AddUser(server.GetClients()[j].GetClientSocket());
+                        std::string Msg = GREEN "You have been invited to the channel\n" RESET;
+                        send(server.GetClients()[j].GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+                        return;
+                    }
+                }
+                std::string Msg = RED "ERROR: User does not exist\n" RESET;
+                send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+                return;
+            } else {
+                std::string Msg = RED "ERROR: You are not an operator in this channel\n" RESET;
+                send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+                return;
+            }
+        }
+    }
+    std::string Msg = RED "ERROR: Channel does not exist\n" RESET;
+    send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0); */
+}
+
+void CommandHandler::processTopic(Client &client, Server &server, const std::vector<std::string> &args)
+{
+    (void)client;
+    (void)server;
+    (void)args;
+    /* std::string Msg;
+    if (args.size() < 2) {
+        Msg = RED "ERROR: TOPIC command requires a channel and a topic: " RESET "TOPIC <#channel> <topic>\n";
+        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+        return;
+    }
+    std::string channel = args[0];
+    std::string topic;
+
+    // Construir el mensaje completo
+    for (size_t i = 1; i < args.size(); ++i) {
+        if (i > 1)
+            topic += " ";
+        topic += args[i];
+    }
+
+    // Buscar el canal
+    for (size_t i = 0; i < server.GetChannels().size(); ++i) {
+        if (server.GetChannels()[i].GetName() == channel) {
+            if (server.GetChannels()[i].isOperator(client.GetClientSocket())) {
+                server.GetChannels()[i].SetTopic(topic);
+                std::string Msg = GREEN "Topic has been set\n" RESET;
+                send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+                return;
+            } else {
+                std::string Msg = RED "ERROR: You are not an operator in this channel\n" RESET;
+                send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+                return;
+            }
+        }
+    }
+    std::string Msg = RED "ERROR: Channel does not exist\n" RESET;
+    send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0); */
+}
+
+void CommandHandler::processMode(Client &client, Server &server, const std::vector<std::string> &args)
+{
+    (void)client;
+    (void)server;
+    (void)args;
+    /* std::string Msg;
+    if (args.size() < 2) {
+        Msg = RED "ERROR: MODE command requires a channel and a mode: " RESET "MODE <#channel> <mode>\n";
+        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+        return;
+    }
+    std::string channel = args[0];
+    std::string mode = args[1];
+
+    // Buscar el canal
+    for (size_t i = 0; i < server.GetChannels().size(); ++i) {
+        if (server.GetChannels()[i].GetName() == channel) {
+            if (server.GetChannels()[i].isOperator(client.GetClientSocket())) {
+                server.GetChannels()[i].SetMode(mode);
+                std::string Msg = GREEN "Mode has been set\n" RESET;
+                send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+                return;
+            } else {
+                std::string Msg = RED "ERROR: You are not an operator in this channel\n" RESET;
+                send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+                return;
+            }
+        }
+    }
+    std::string Msg = RED "ERROR: Channel does not exist\n" RESET;
+    send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0); */
+}
+
+// Funciones auxiliares
 
 void CommandHandler::sendToChannel(Server &server, const std::string &channelName, const std::string &msg, Client &client)
 {
@@ -211,4 +369,44 @@ void CommandHandler::sendToClient(Server &server, const std::string &clientNick,
     }
     std::string Msg = RED "ERROR: User does not exist\n" RESET;
     send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+}
+
+bool CommandHandler::handleOperatorCommand(Client &client, Server &server, const std::string &channelName, const std::string &command)
+{
+    //std::vector<std::string> args; splitCommand(command);
+    for (size_t i = 0; i < server.GetChannels().size(); ++i) {
+        if (server.GetChannels()[i].GetName() == channelName) {
+
+            // comprobaciones de operador
+            /* printf("client socket: %d\n", client.GetClientSocket());
+            printf("channel: %s\n", server.GetChannels()[i].GetName().c_str());
+            printf("is operator: %d\n", server.GetChannels()[i].isOperator(client.GetClientSocket())); */
+            
+            if (server.GetChannels()[i].isOperator(client.GetClientSocket())) {
+                //verificar si se cumple la condiciones para ejecutar el comando
+                printf("Client is operator\n");
+                // Ejecutar comando con privilegios de operador
+                /* if (command == "KICK") {
+                    processKick(client, server, args);
+                } else if (command == "INVITE") {
+                    processInvite(client, server, args);
+                } else if (command == "TOPIC") {
+                    processTopic(client, server, args);
+                } else if (command == "MODE") {
+                    processMode(client, server, args);
+                } */
+                std::cout  << Server::getCurrentTime() 
+                            << GREEN << "[+] Client <" << client.GetClientSocket() << "> executed operator command: " << MAGENTA << command << RESET << std::endl;
+                return true;
+            } else {
+                std::string Msg = RED "ERROR: You are not an operator in this channel\n" RESET;
+                send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+                return false;
+            }   
+        }
+    }
+    // Si el canal no existe, enviamos un mensaje de error
+    std::string Msg = RED "ERROR: Channel does not exist\n" RESET;
+    send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+    return false;
 }

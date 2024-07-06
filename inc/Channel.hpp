@@ -1,12 +1,10 @@
 #ifndef CHANEL_HPP
 #define CHANEL_HPP
 
-#include <iostream>
-#include <vector>
-#include <algorithm>
+#include "Library.hpp"
 
-
-class Channel {
+class Channel 
+{
     public:
         Channel();
         Channel(std::string name);
@@ -24,9 +22,15 @@ class Channel {
 
         bool UserExists(int clientSocket);
 
+        // operador de canal
+        bool isOperator(int clientSocket) const;
+        void addOperator(int clientSocket);
+        void removeOperator(int clientSocket);
+
     private:
         std::string name;
         std::vector<int> users;
+        std::set<int> operators; // Almacenamos sockets de los operadores
 };
 
 #endif
