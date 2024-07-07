@@ -28,7 +28,7 @@ void CommandHandler::handleCommand(const std::string &commandLine, Server &serve
     } else if ((command == "KICK" || command == "INVITE" || command == "TOPIC" || command == "MODE") && client.GetAuthenticated() == true) {
         if (!tokens.empty()) {
             std::string channelName = tokens[0];
-            handleOperatorCommand(client, server, channelName, command);
+            handleOperatorCommand(client, server, channelName, command, tokens);
         } else {
             std::string Msg = RED "ERROR: Command requires a channel\n" RESET;
             send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
@@ -170,10 +170,7 @@ void CommandHandler::processPrivmsg(Client &client, Server &server, const std::v
 
 void CommandHandler::processKick(Client &client, Server &server, const std::vector<std::string> &args)
 {
-    (void)client;
-    (void)server;
-    (void)args;
-    /* std::string Msg;
+    std::string Msg;
     if (args.size() < 2) {
         Msg = RED "ERROR: KICK command requires a channel and a nickname: " RESET "KICK <#channel> <nickname>\n";
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
@@ -209,8 +206,8 @@ void CommandHandler::processKick(Client &client, Server &server, const std::vect
             }
         }
     }
-    std::string Msg = RED "ERROR: Channel does not exist\n" RESET;
-    send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0); */
+    Msg = RED "ERROR: Channel does not exist\n" RESET;
+    send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
 }
 
 void CommandHandler::processInvite(Client &client, Server &server, const std::vector<std::string> &args)
@@ -371,15 +368,17 @@ void CommandHandler::sendToClient(Server &server, const std::string &clientNick,
     send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
 }
 
-bool CommandHandler::handleOperatorCommand(Client &client, Server &server, const std::string &channelName, const std::string &command)
+bool CommandHandler::handleOperatorCommand(Client &client, Server &server, 
+                                            const std::string &channelName, const std::string &command, 
+                                            const std::vector<std::string> &args)
 {
     for (size_t i = 0; i < server.GetChannels().size(); ++i) {
         if (server.GetChannels()[i].GetName() == channelName) {
             if (server.GetChannels()[i].isOperator(client.GetClientSocket())) {
                 // Ejecutar comando con privilegios de operador
-                /* if (command == "KICK") {
+                if (command == "KICK") {
                     processKick(client, server, args);
-                } else if (command == "INVITE") {
+                } /* else if (command == "INVITE") {
                     processInvite(client, server, args);
                 } else if (command == "TOPIC") {
                     processTopic(client, server, args);

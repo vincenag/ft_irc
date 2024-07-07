@@ -28,7 +28,9 @@ class CommandHandler
         void sendToClient(Server &server, const std::string &clientNick, const std::string &msg, Client &client);
         
         // metodo para manejar los comandos de operador
-        bool handleOperatorCommand(Client &client, Server &server, const std::string &channelName, const std::string &command);
+        bool handleOperatorCommand(Client &client, Server &server, 
+                                    const std::string &channelName, const std::string &command, 
+                                    const std::vector<std::string> &args);
         
 };
 

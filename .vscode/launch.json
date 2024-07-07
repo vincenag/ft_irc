@@ -1,0 +1,23 @@
+{
+    // Use IntelliSense para saber los atributos posibles.
+    // Mantenga el puntero para ver las descripciones de los existentes atributos.
+    // Para más información, visite: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        
+
+        {
+            "type": "cppdbg",
+            "request": "launch",
+            "name": "GDB Debug",
+            "program": "${workspaceFolder}/ircserv",
+            "args": ["4444", "1234"],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "environment": [],
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb", // Asegúrate de ajustar la ruta al ejecutable de GDB en tu sistema
+            "logging": { "engineLogging": false }  
+        }
+    ]
+}

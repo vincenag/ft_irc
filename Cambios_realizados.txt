@@ -16,3 +16,10 @@
     busca por canales, si no existe da error y si no comprueba si es operador del canal o no.
 ** Comprobar en Server(JoinChannel), CommandHandler(handleOperatorCommand) y Channel(funciones operator)
     porque añade a todos los clientes como Admin, tal vez los meta a todos en el mismo std::set siempre?
+** Ojo con la funcion isOperator en Channel.cpp en el if lo tengo con un ( == ) debe ser ( != ), lo tengo ahora añadirUsuario
+    para poder seguir parseando y ejecutar comandos como admin, en el momento que se cambie es cuando viene el problema
+    de que aun siendo admin no te verifica. Posible que el contenedor set no este vacio y no guarde bien el numero de socket?
+    creo que es esto lo que pasa. Es como si hubiera dos instancias distintas y el socket se guarda en std::set y no en el otro
+    por eso se queda vacio o no se que mierda pasa, ajjaj.
+** No funciona bien el comando KICK, cuando intenta echar a un usuario que no existe te lanza el mensaje de que no puedes echarte a ti mismo 
+    Tal vez sea como accede a los contenedores de channels o usuarios o no se que mierda pasa, creo que van  por ahi los tiros.
