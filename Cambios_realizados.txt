@@ -23,3 +23,16 @@
     por eso se queda vacio o no se que mierda pasa, ajjaj.
 ** No funciona bien el comando KICK, cuando intenta echar a un usuario que no existe te lanza el mensaje de que no puedes echarte a ti mismo 
     Tal vez sea como accede a los contenedores de channels o usuarios o no se que mierda pasa, creo que van  por ahi los tiros.
+
+Aclaraciones Agustín:
+- Problema con el contenedor "operators" solucionado, solo bastaba con invertir el orden de estas lineas en la funcion JoinChannel:
+        newChannel.addOperator(client.GetClientSocket());
+        this->channels.push_back(newChannel);
+- Problema con el comando KICK también solucionado, el error se debía a uno de los bucles que recorría los usuarios en el canal.
+Para simplificar un poco este último punto y debido a que teníamos muchos bucles nidificados que liaban un poco todo, he creado un par de miembros en la clase del Servidor.
+        Channel* GetThisChannel(std::string channelName);  --> Devuelve un puntero al canal con ese nombre o un puntero nulo.
+        int GetSocketByNick(const std::string& nick) const; --> Devuelve el socket en base al nick o -1 si no existe. 
+Usé estas funciones para evitar algunos bucles en varias de las funciones ya implementadas, como PRIVMSG, KICK, handleOperatorCommand y no recuerdo si alguna mas. Pero ha quedado más limpio y mas corto.
+
+** Me he dado cuenta que tambien falta el comando USER si no me equivoco, el subject pone "You must be able to authenticate, set a nickname, a username, join a channel,
+send and receive private messages using your reference client." 

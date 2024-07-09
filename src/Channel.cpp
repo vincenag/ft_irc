@@ -3,6 +3,8 @@
 Channel::Channel()
 {
     this->name = "";
+    this->users = std::vector<int>();
+    this->operators = std::set<int>();
 }
 
 Channel::~Channel(){}
@@ -18,6 +20,7 @@ Channel &Channel::operator=(Channel const &src)
     {
         this->name = src.name;
         this->users = src.users;
+        this->operators = src.operators;
     }
     return *this;
 }
@@ -57,9 +60,10 @@ bool Channel::UserExists(int clientSocket)
     return std::find(this->users.begin(), this->users.end(), clientSocket) != this->users.end();
 }
 
+
 bool Channel::isOperator(int clientSocket) const
 {
-    return this->operators.find(clientSocket) == this->operators.end();
+    return this->operators.find(clientSocket) != this->operators.end();
 }
 
 void Channel::addOperator(int clientSocket)

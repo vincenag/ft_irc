@@ -18,7 +18,7 @@ Server &Server::operator=(Server const &src) // modificar esto luego
         this->new_poll = src.new_poll;
         this->clients = src.clients;
         this->channels = src.channels;
-        this->clientData = src.clientData;
+        //this->clientNicknames = src.clientNicknames;
     }
     return *this;
 }
@@ -287,6 +287,7 @@ void Server::JoinChannel(Client &client, std::string channelName)
     {
         Channel newChannel(channelName);
         newChannel.AddUser(client.GetClientSocket());
+        newChannel.addOperator(client.GetClientSocket());
         this->channels.push_back(newChannel);
         std::cout   << Server::getCurrentTime() 
                     << GREEN << "[+] Client <" << client.GetClientSocket() << "> has created a new channel: " 
@@ -298,11 +299,11 @@ void Server::JoinChannel(Client &client, std::string channelName)
                     << MAGENTA << client.GetClientSocket() << RESET << std::endl;
         std::string Msg = GREEN "Channel created successfully. You are now " BLUE "Admin\n" RESET;
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-        newChannel.addOperator(client.GetClientSocket()); //Asignar como operador al creador del canal
+
         //verificar la posicion del socket dentro de std::set
-        std::set<int>::iterator it = newChannel.operators.begin();
-        for (int i = 0; i < 3 && it != newChannel.operators.end(); ++i, ++it) {
-            printf("socket: %d\n", *it);
+        for (std::set<int>::iterator it = newChannel.operators.begin(); it != newChannel.operators.end(); ++it)
+        {
+            std::cout << "socket: " << *it << std::endl;
         }
     }
 }
@@ -321,6 +322,36 @@ std::vector<Channel> Server::GetChannels()
 std::vector<Client> Server::GetClients()
 {
     return this->clients;
+}
+
+int Server::GetSocketByNick(const std::string& nick) const
+{
+    for (size_t i = 0; i < this->clients.size(); i++)
+    {
+        if (this->clients[i].GetClientNick() == nick)
+            return this->clients[i].GetClientSocket();
+    }
+    return -1;
+}
+
+bool Server::ChannelExists(std::string channelName)
+{
+    for (size_t i = 0; i < this->channels.size(); i++)
+    {
+        if (this->channels[i].GetName() == channelName)
+            return true;
+    }
+    return false;
+}
+
+Channel* Server::GetThisChannel(std::string channelName)
+{
+    for (size_t i = 0; i < this->channels.size(); i++)
+    {
+        if (this->channels[i].GetName() == channelName)
+            return &this->channels[i];
+    }
+    return nullptr;
 }
 
 /**

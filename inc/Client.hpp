@@ -14,10 +14,10 @@ class Client
         void SetClientSocket(int clientSocket);
         void SetClientIpAddr(std::string clientIpAddr);
 
-        int GetClientSocket();
-        std::string GetClientIpAddr();
+        int GetClientSocket() const;
+        std::string GetClientIpAddr() const;
 
-        std::string GetClientNick();
+        std::string GetClientNick() const;
         void SetClientNick(std::string clientNick);
 
         bool GetAuthenticated();

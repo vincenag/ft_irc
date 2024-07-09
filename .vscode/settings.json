@@ -1,6 +1,5 @@
 {
     "files.associations": {
-        "*.tpp": "cpp",
         "array": "cpp",
         "atomic": "cpp",
         "bit": "cpp",
@@ -21,6 +20,7 @@
         "cwchar": "cpp",
         "cwctype": "cpp",
         "deque": "cpp",
+        "list": "cpp",
         "map": "cpp",
         "set": "cpp",
         "string": "cpp",
@@ -51,7 +51,6 @@
         "sstream": "cpp",
         "stdexcept": "cpp",
         "streambuf": "cpp",
-        "cinttypes": "cpp",
         "typeinfo": "cpp"
     }
 }

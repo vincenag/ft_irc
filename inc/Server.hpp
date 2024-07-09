@@ -21,7 +21,11 @@ class Server{
         void RemoveClient(int clientSocket);
 
         std::vector<Client> GetClients();
+        int GetSocketByNick(const std::string& nick) const;
         std::vector<Channel> GetChannels();
+        Channel* GetThisChannel(std::string channelName);
+
+        bool ChannelExists(std::string channelName);
 
         // miembro para obtener fecha y hora actuales
         static std::string getCurrentTime();
@@ -36,7 +40,8 @@ class Server{
         struct pollfd new_poll; // File descriptor for the new client
         std::vector<Client> clients; // Vector of clients
         std::vector<Channel> channels; // Vector of chanels
-        std::map<int, std::string> clientData; // Map of fd y Nickname
+
+        //std::map<int, std::string> clientNicknames;  Map of client nicknames
 
         void socketInit();
         void acceptClient();

@@ -29,17 +29,17 @@ void Client::SetClientIpAddr(std::string clientIpAddr)
     this->clientIpAddr = clientIpAddr;
 }
 
-int Client::GetClientSocket()
+int Client::GetClientSocket() const
 {
     return this->clientSocket;
 }
 
-std::string Client::GetClientIpAddr()
+std::string Client::GetClientIpAddr() const
 {
     return this->clientIpAddr;
 }
 
-std::string Client::GetClientNick()
+std::string Client::GetClientNick() const
 {
     return this->clientNick;
 }
