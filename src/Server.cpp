@@ -299,12 +299,6 @@ void Server::JoinChannel(Client &client, std::string channelName)
                     << MAGENTA << client.GetClientSocket() << RESET << std::endl;
         std::string Msg = GREEN "Channel created successfully. You are now " BLUE "Admin\n" RESET;
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-
-        //verificar la posicion del socket dentro de std::set
-        for (std::set<int>::iterator it = newChannel.operators.begin(); it != newChannel.operators.end(); ++it)
-        {
-            std::cout << "socket: " << *it << std::endl;
-        }
     }
 }
 
