@@ -23,14 +23,33 @@ class Channel
         bool UserExists(int clientSocket);
 
         // operador de canal
-        std::set<int> operators; // Almacenamos sockets de los operadores
+
         bool isOperator(int clientSocket) const;
         void addOperator(int clientSocket);
         void removeOperator(int clientSocket);
 
+        // invitados
+        bool isInviteOnly() const;
+        void setInviteOnly(bool value);
+        void inviteUser(int clientSocket);
+        bool IsInvited(int clientSocket);
+
+        // bloqueo de topicos
+        bool isTopicblock() const;
+        void setTopicblock(bool value);
+        void setTopic(std::string topic);
+        std::string getTopic();
+
     private:
         std::string name;
         std::vector<int> users;
+        std::set<int> operators; // Almacenamos sockets de los operadores
+
+        bool InviteOnly;
+        std::set<int> invitedUsers;
+
+        std::string topic;
+        bool Topicblock;
 };
 
 #endif

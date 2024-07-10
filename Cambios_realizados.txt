@@ -33,6 +33,16 @@ Para simplificar un poco este último punto y debido a que teníamos muchos bucl
         Channel* GetThisChannel(std::string channelName);  --> Devuelve un puntero al canal con ese nombre o un puntero nulo.
         int GetSocketByNick(const std::string& nick) const; --> Devuelve el socket en base al nick o -1 si no existe. 
 Usé estas funciones para evitar algunos bucles en varias de las funciones ya implementadas, como PRIVMSG, KICK, handleOperatorCommand y no recuerdo si alguna mas. Pero ha quedado más limpio y mas corto.
-
 ** Me he dado cuenta que tambien falta el comando USER si no me equivoco, el subject pone "You must be able to authenticate, set a nickname, a username, join a channel,
 send and receive private messages using your reference client." 
+
+
+
+NUEVAS NOTAS 10 / 07 :
+- He añadido atributos y miembros a Channel para que sea posible colocarlo en Modo "Solo con invitacion" (booleano y contenedor con invitados)
+- Lo mismo con Topic, tambien he agregado atributos y miembros para esto en la misma clase
+- He debido añadir algunas modificaciones a la funcion "handleOperatorCommand" y cambiarle un poco la lógica para que sea compatible con INVITE y TOPIC:
+    *Por un lado INVITE debe funcionar al revés que los demas comandos en cuanto al orden (INVITE <nick> <#channel> en vez de INVITE <#channel> <nick>). Uno de los paramteros que se pasaban a "handleOperatorCommand" 
+    era un string de "channel", esto lo borré porque para INVITE por ejemplo ese argumento era el "nick" y no el "channel", entonces no entraba en la funcion. Directamente quite ese argumento de string channel de la funcion, 
+    por que todos estos datos ya se le pasan en el ultimo argumento ->  const std::vector<std::string> &arg
+    *Por otro lado TOPIC puede ejecutarse por cualquiera para ver el tema deun determinado canal, no hace falta que sea admin. Los admins si pueden bloquear ese topic para que no lo puedan cambiar gente que no sea administradora. (MODE +t -t)
