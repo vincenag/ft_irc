@@ -19,9 +19,11 @@ void CommandHandler::handleCommand(const std::string &commandLine, Server &serve
     // mandamos el cliente y el vector tokens con los argumentos
     if (command == "PASS" && client.GetAuthenticated() == false){
         processPass(client, server, tokens);
-    } else if (command == "NICK" && client.GetAuthenticated() == true){
+    } else if (command == "NICK" && client.GetAuthenticated() == true) {
         processNick(client, server, tokens);
-    } else if (command == "JOIN" && client.GetAuthenticated() == true && client.GetClientNick() != ""){
+    } else if (command == "USER" && client.GetAuthenticated() == true) {
+        processUser(client, server, tokens);
+    } else if (command == "JOIN" && client.GetAuthenticated() == true) {
         processJoin(client, server, tokens);
     } else if (command == "PRIVMSG" && client.GetAuthenticated() == true && client.GetClientNick() != ""){
         processPrivmsg(client, server, tokens);
@@ -96,19 +98,39 @@ void CommandHandler::processNick(Client &client, Server &server, const std::vect
         if (server.GetClients()[i].GetClientNick() == nick && server.GetClients()[i].GetClientSocket() != client.GetClientSocket()){
             Msg = RED "ERROR: Nickname already in use\n" RESET;
             send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-            // Obviar estos mensajes en el server, creo que no son necesarios, solo mostrar en el cliente
-            /* std::cout   << Server::getCurrentTime() 
-                        << RED << "[-] Client <" << client.GetClientSocket() << "> failed to set nickname" << RESET << std::endl; */
             return;
         }
     }
 
     // Si el nick es válido, lo establecemos
     client.SetClientNick(nick);
+    client.SetNickSet(true); // Indicamos que el nick ha sido establecido
     std::cout   << Server::getCurrentTime() 
                 << GREEN << "[+] Client <" << client.GetClientSocket() << "> set nickname to " 
                 << MAGENTA << nick << RESET << std::endl;
-    Msg = GREEN "Your Nickname has been set. Use JOIN command to create or to join a channel\n" RESET;
+    Msg = GREEN "Your Nickname has been set. Use USER command:\n" RESET "USER <username> <hostname> <servername> <realname>\n";
+    send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+}
+
+void CommandHandler::processUser(Client &client, Server &/*server*/, const std::vector<std::string> &args)
+{
+    std::string Msg;
+
+    if (args.size() < 4) {
+        Msg = RED "ERROR: USER command requires 4 arguments:\n" RESET "USER <username> <hostname> <servername> <realname>\n";
+        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+        return;
+    }
+
+    // Actualizar la información del cliente
+    client.SetUsername(args[0]);
+    client.SetHostname(args[1]);
+    client.SetServername(args[2]);
+    client.SetRealname(args[3]);
+
+    // Enviar confirmación al cliente
+    client.SetUserSet(true);
+    Msg = GREEN "Your USER information has been set successfully.\n" RESET;
     send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
 }
 
@@ -120,6 +142,15 @@ void CommandHandler::processJoin(Client &client, Server &server, const std::vect
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
         return;
     }
+
+    // Comprobar que USER y NICK fueron creados
+    if (!client.IsFullyAuthenticated()) {
+        Msg = RED "ERROR: You must set NICK and USER before joining a channel\n" RESET;
+        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+        return;
+    }
+
+    // Comprobar si el cliente ya está en un canal
     std::string channel = args[0];
     if (channel[0] != '#') {
         Msg = RED "ERROR: Channel name must start with '#': " RESET "JOIN <#channel>\n";

@@ -1,6 +1,6 @@
 #include "Client.hpp"
 
-Client::Client(): clientSocket(-1), clientIpAddr(""){}
+Client::Client(): clientSocket(-1), clientIpAddr(""), nickSet(false), userSet(false){}
 
 Client::~Client(){}
 
@@ -54,7 +54,48 @@ bool Client::GetAuthenticated()
     return this->Authenticated;
 }
 
+// Definir estado de autenticado de USER y NICK
+
 void Client::SetAuthenticated(bool Authenticated)
 {
     this->Authenticated = Authenticated;
+}
+
+void Client::SetNickSet(bool value)
+{
+    this->nickSet = value;
+}
+
+void Client::SetUserSet(bool value)
+{
+    this->userSet = value;
+}
+
+bool Client::IsFullyAuthenticated() const
+{
+    if (this->nickSet && this->userSet)
+        return true;
+    return false;
+}
+
+// Metodos para USER
+
+void Client::SetUsername(const std::string &username)
+{
+    this->username = username;
+}
+
+void Client::SetRealname(const std::string &realname)
+{
+    this->realname = realname;
+}
+
+void Client::SetHostname(const std::string &hostname)
+{
+    this->hostname = hostname;
+}
+
+void Client::SetServername(const std::string &servername)
+{
+    this->servername = servername;
 }
