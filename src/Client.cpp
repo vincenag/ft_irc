@@ -54,12 +54,11 @@ bool Client::GetAuthenticated()
     return this->Authenticated;
 }
 
-// Definir estado de autenticado de USER y NICK
-
 void Client::SetAuthenticated(bool Authenticated)
 {
     this->Authenticated = Authenticated;
 }
+// Definir estado de autenticado de USER y NICK
 
 void Client::SetNickSet(bool value)
 {
@@ -73,7 +72,7 @@ void Client::SetUserSet(bool value)
 
 bool Client::IsFullyAuthenticated() const
 {
-    if (this->nickSet && this->userSet)
+    if (nickSet == true && userSet == true)
         return true;
     return false;
 }

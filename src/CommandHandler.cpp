@@ -108,8 +108,13 @@ void CommandHandler::processNick(Client &client, Server &server, const std::vect
     std::cout   << Server::getCurrentTime() 
                 << GREEN << "[+] Client <" << client.GetClientSocket() << "> set nickname to " 
                 << MAGENTA << nick << RESET << std::endl;
-    Msg = GREEN "Your Nickname has been set. Use USER command:\n" RESET "USER <username> <hostname> <servername> <realname>\n";
-    send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+    if (!client.IsFullyAuthenticated()) {
+        Msg = GREEN "Your Nickname has been set. Use USER command to continue\n" RESET;
+        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+    } else {
+        Msg = GREEN "Your Nickname has been set successfully.\n" RESET;
+        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+    }
 }
 
 void CommandHandler::processUser(Client &client, Server &/*server*/, const std::vector<std::string> &args)
@@ -130,8 +135,10 @@ void CommandHandler::processUser(Client &client, Server &/*server*/, const std::
 
     // Enviar confirmación al cliente
     client.SetUserSet(true);
-    Msg = GREEN "Your USER information has been set successfully.\n" RESET;
-    send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+    if (!client.IsFullyAuthenticated())
+        Msg = GREEN "Your User information has been set. Use NICK command to continue\n" RESET;
+    else
+        Msg = GREEN "Your User information has been set successfully.\n" RESET;
 }
 
 void CommandHandler::processJoin(Client &client, Server &server, const std::vector<std::string> &args)
