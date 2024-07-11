@@ -39,9 +39,11 @@ send and receive private messages using your reference client."
 
 
 NUEVAS NOTAS 11 / 07 :
+Comandos agregados, INVITE, TOPIC y todos los MODES. VArias modificaciones en funciones existentes para poder gestionar todo correctamente:
 - He añadido atributos y miembros a Channel para que sea posible colocarlo en Modo "Solo con invitacion" (booleano y contenedor con invitados)
 - Lo mismo con Topic, tambien he agregado atributos y miembros para esto en la misma clase
 - Lo mismo con limit, para el numero limite de usuarios en un canal.
+- Lo mismo con el password.
 - He debido añadir algunas modificaciones a la funcion "handleOperatorCommand" y cambiarle un poco la lógica para que sea compatible con INVITE y TOPIC:
     *Por un lado INVITE debe funcionar al revés que los demas comandos en cuanto al orden (INVITE <nick> <#channel> en vez de INVITE <#channel> <nick>). Uno de los paramteros que se pasaban a "handleOperatorCommand" 
     era un string de "channel", esto lo borré porque para INVITE por ejemplo ese argumento era el "nick" y no el "channel", entonces no entraba en la funcion. Directamente quite ese argumento de string channel de la funcion, 
