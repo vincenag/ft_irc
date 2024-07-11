@@ -8,6 +8,9 @@ Channel::Channel()
     this->InviteOnly = false;
     this->Topicblock = false;
     this->topic = "";
+    this->password = "";
+    this->limitUsers = 0;
+    this->limitUsersEnabled = false;
 }
 
 Channel::~Channel(){}
@@ -21,6 +24,9 @@ Channel::Channel(Channel const &src)
     this->invitedUsers = src.invitedUsers;
     this->topic = src.topic;
     this->Topicblock = src.Topicblock;
+    this->password = src.password;
+    this->limitUsers = src.limitUsers;
+    this->limitUsersEnabled = src.limitUsersEnabled;
 }
 
 Channel &Channel::operator=(Channel const &src)
@@ -34,6 +40,9 @@ Channel &Channel::operator=(Channel const &src)
         this->invitedUsers = src.invitedUsers;
         this->topic = src.topic;
         this->Topicblock = src.Topicblock;
+        this->password = src.password;
+        this->limitUsers = src.limitUsers;
+        this->limitUsersEnabled = src.limitUsersEnabled;
     }
     return *this;
 }
@@ -46,6 +55,9 @@ Channel::Channel(std::string name)
     this->InviteOnly = false;
     this->Topicblock = false;
     this->topic = "";
+    this->password = "";
+    this->limitUsers = 0;
+    this->limitUsersEnabled = false;
 }
 
 void Channel::SetName(std::string name)
@@ -110,7 +122,7 @@ void Channel::inviteUser(int clientSocket)
     this->invitedUsers.insert(clientSocket);
 }
 
-bool Channel::IsInvited(int clientSocket)
+bool Channel::IsInvited(int clientSocket) const
 {
     return this->invitedUsers.find(clientSocket) != this->invitedUsers.end();
 }
@@ -130,7 +142,37 @@ void Channel::setTopic(std::string topic)
     this->topic = topic;
 }
 
-std::string Channel::getTopic()
+std::string Channel::getTopic() const
 {
     return this->topic;
+}
+
+void Channel::setPassword(std::string password)
+{
+    this->password = password;
+}
+
+std::string Channel::getPassword() const
+{
+    return this->password;
+}
+
+void Channel::setLimitUsers(int limit)
+{
+    this->limitUsers = limit;
+}
+
+unsigned int Channel::getLimitUsers() const
+{
+    return this->limitUsers;
+}
+
+bool Channel::isLimitUsersEnabled() const
+{
+    return this->limitUsersEnabled;
+}
+
+void Channel::setLimitUsersEnabled(bool value)
+{
+    this->limitUsersEnabled = value;
 }

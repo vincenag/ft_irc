@@ -32,24 +32,37 @@ class Channel
         bool isInviteOnly() const;
         void setInviteOnly(bool value);
         void inviteUser(int clientSocket);
-        bool IsInvited(int clientSocket);
+        bool IsInvited(int clientSocket) const;
 
         // bloqueo de topicos
         bool isTopicblock() const;
         void setTopicblock(bool value);
         void setTopic(std::string topic);
-        std::string getTopic();
+        std::string getTopic() const;
+
+        void setPassword(std::string password);
+        std::string getPassword() const;
+
+        void setLimitUsers(int limit);
+        unsigned int getLimitUsers() const;
+        bool isLimitUsersEnabled() const;
+        void setLimitUsersEnabled(bool value);
 
     private:
         std::string name;
         std::vector<int> users;
         std::set<int> operators; // Almacenamos sockets de los operadores
 
+        std::string password;
+
         bool InviteOnly;
         std::set<int> invitedUsers;
 
         std::string topic;
         bool Topicblock;
+
+        unsigned int limitUsers;
+        bool limitUsersEnabled;
 };
 
 #endif

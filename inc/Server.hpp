@@ -15,7 +15,7 @@ class Server{
         static void signalHandler(int signal);
         void serverInit(int port, std::string password);
 
-        void JoinChannel(Client &client, std::string channelName);
+        void JoinChannel(Client &client, std::string channelName, const std::vector<std::string> &args);
 
         std::string GetPassword();
         void RemoveClient(int clientSocket);

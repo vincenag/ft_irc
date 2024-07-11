@@ -255,7 +255,7 @@ void Server::RemoveClient(int clientSocket)
     close(clientSocket);
 }
 
-void Server::JoinChannel(Client &client, std::string channelName)
+void Server::JoinChannel(Client &client, std::string channelName, const std::vector<std::string> &args)
 {
     // Comprobar si el canal ya existe
     bool channelFound = ChannelExists(channelName);
@@ -263,13 +263,28 @@ void Server::JoinChannel(Client &client, std::string channelName)
     // Si el canal existe, se añade al cliente
     if (channelFound){
         Channel* channel = GetThisChannel(channelName);
-        std::cout << "inviteOnly: " << channel->isInviteOnly() << "\n";
+        //Comprobamos si el canal requiere contraseña
+        if (channel->getPassword() != "" && args[1] != channel->getPassword())
+        {
+            std::string Msg = RED "ERROR: Invalid password\n" RESET;
+            send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+            return;
+        }
+        //Comprobamos si el canal requiere invitacion y si esta invitado
         if (channel->isInviteOnly() && !channel->IsInvited(client.GetClientSocket()))
         {
             std::string Msg = RED "ERROR: You are not invited to this channel\n" RESET;
             send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
             return;
         }
+        //Comprobar el numero de usuarios en el canal
+        if (channel->isLimitUsersEnabled() && channel->GetUsers().size() >= channel->getLimitUsers())
+        {
+            std::string Msg = RED "ERROR: Channel is full\n" RESET;
+            send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+            return;
+        }
+        //Comprobamos si esta ya en el canal
         if (channel->UserExists(client.GetClientSocket()))
         {
             std::string Msg = RED "ERROR: You are already in this channel\n" RESET;
@@ -293,7 +308,6 @@ void Server::JoinChannel(Client &client, std::string channelName)
         newChannel.addOperator(client.GetClientSocket());
         this->channels.push_back(newChannel);
         
-        Channel& newChannelRef = this->channels.back();
         std::cout   << Server::getCurrentTime() 
                     << GREEN << "[+] Client <" << client.GetClientSocket() << "> has created a new channel: " 
                     << MAGENTA << channelName << RESET << std::endl;
@@ -304,7 +318,6 @@ void Server::JoinChannel(Client &client, std::string channelName)
                     << MAGENTA << client.GetClientSocket() << RESET << std::endl;
         std::string Msg = GREEN "Channel created successfully. You are now " BLUE "Admin\n" RESET;
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-        std::cout << "inviteOnly: " << newChannelRef.isInviteOnly() << "\n";
     }
 }
 
