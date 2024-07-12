@@ -33,6 +33,8 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <queue>
+#include <cerrno>
 
 #include "Client.hpp"
 #include "Server.hpp"

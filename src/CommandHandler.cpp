@@ -79,7 +79,7 @@ void CommandHandler::processNick(Client &client, Server &server, const std::vect
 {
     std::string Msg;
 
-    if (args.size() < 1) {
+    if (args.size() < 1 || args[0] == "") {
         Msg = RED "ERROR: NICK command requires a Nickname: " RESET "NICK <nickname>\n";
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
         return;
@@ -108,11 +108,13 @@ void CommandHandler::processNick(Client &client, Server &server, const std::vect
     std::cout   << Server::getCurrentTime() 
                 << GREEN << "[+] Client <" << client.GetClientSocket() << "> set nickname to " 
                 << MAGENTA << nick << RESET << std::endl;
-    if (!client.IsFullyAuthenticated()) {
+    if (client.getUser() == false || client.getNick() == false) {
         Msg = GREEN "Your Nickname has been set. Use USER command to continue\n" RESET;
+        std::cout << "Nickset: " << client.getNick() << std::endl;
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
     } else {
         Msg = GREEN "Your Nickname has been set successfully.\n" RESET;
+        std::cout << "Nickset: " << client.getNick() << std::endl;
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
     }
 }
@@ -135,10 +137,22 @@ void CommandHandler::processUser(Client &client, Server &/*server*/, const std::
 
     // Enviar confirmación al cliente
     client.SetUserSet(true);
-    if (!client.IsFullyAuthenticated())
+    /* if (!client.IsFullyAuthenticated()) {
         Msg = GREEN "Your User information has been set. Use NICK command to continue\n" RESET;
-    else
+    } else if(client.IsFullyAuthenticated()) {
         Msg = GREEN "Your User information has been set successfully.\n" RESET;
+    } */
+    if (client.getUser() == false || client.getNick() == false) {
+        Msg = GREEN "Your User information has been set. Use NICK command to continue\n" RESET;
+        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+
+        std::cout << "Userset: " << client.getUser() << std::endl;
+        return;
+    }
+    std::cout << "Userset: " << client.getUser() << std::endl;
+    Msg = GREEN "Your User information has been set successfully.\n" RESET;
+    send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+
 }
 
 void CommandHandler::processJoin(Client &client, Server &server, const std::vector<std::string> &args)
@@ -151,12 +165,19 @@ void CommandHandler::processJoin(Client &client, Server &server, const std::vect
     }
 
     // Comprobar que USER y NICK fueron creados
-    if (!client.IsFullyAuthenticated()) {
-        Msg = RED "ERROR: You must set NICK and USER before joining a channel\n" RESET;
+    std::cout << "User: " << client.getUser() << std::endl;
+    std::cout << "Nick: " << client.getNick() << std::endl;
+    if (client.getUser() == false || client.getNick() == false) {
+        std::string msg = RED "ERROR: You must set NICK and USER before joining a channel\n" RESET;
+        send(client.GetClientSocket(), msg.c_str(), msg.size(), 0);
+        return;
+    } 
+
+    if (args[1] == "") {
+        Msg = RED "ERROR: NICK command requires a Nickname: " RESET "NICK <nickname>\n";
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
         return;
     }
-
     // Comprobar si el cliente ya está en un canal
     std::string channel = args[0];
     if (channel[0] != '#') {
@@ -490,7 +511,7 @@ void CommandHandler::sendToChannel(Server &server, const std::string &channelNam
         std::vector<int> users = channel->GetUsers();
         for (size_t i = 0; i < users.size(); i++) {
             if (users[i] != client.GetClientSocket()) {
-                std::string message = client.GetClientNick() + YELLOW " PRIVMSG " RESET + channelName + " :" + msg + "\n";
+                std::string message = "\n" + client.GetClientNick() + YELLOW " PRIVMSG " RESET + channelName + " :" + msg + "\n";
                 send(users[i], message.c_str(), message.size(), 0);
             }
         }

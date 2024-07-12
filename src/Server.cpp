@@ -1,6 +1,9 @@
 #include "Library.hpp"
 
-Server::Server(){this->serverSocket = -1;}
+Server::Server() 
+{
+    this->serverSocket = -1;
+}
 
 Server::~Server(){}
 
@@ -69,9 +72,11 @@ void Server::serverInit(int port, std::string password)
     while (Server::Signal == false)
     {
         int ret = poll(&fds[0], fds.size(), -1); // -1: Esperar indefinidamente hasta que se produzca un evento
-        if (ret < 0)
+        if (ret < 0){
+            if (errno == EINTR) // EINTR: Señal recibida
+                continue;
             throw std::runtime_error("poll() failed");
-
+        }
         if (fds[0].revents & POLLIN) // POLLIN: Hay datos para leer
         {
             this->acceptClient();
@@ -84,7 +89,22 @@ void Server::serverInit(int port, std::string password)
             }
         }
     }
+
+    this->shutdownServer();
 }
+
+void Server::shutdownServer()
+{
+    std::cout   << Server::getCurrentTime()
+                << RED << "[-] Shutting down server" << RESET << std::endl;
+
+    close(this->serverSocket);
+    for (size_t i = 1; i < fds.size(); i++)
+    {
+        close(fds[i].fd);
+    }
+}
+
 
 /**
  * @brief Inicializa el socket del servidor.
@@ -192,7 +212,6 @@ void Server::printIRCChatBanner(int clientSocket)
     send(clientSocket, banner.c_str(), banner.size(), 0);
 }
 
-
 /**
  * @brief Procesa los datos recibidos de un cliente.
  *
@@ -227,9 +246,19 @@ void Server::getClientdata(int clientSocket)
             }
         }
         if (client != nullptr) {
-            // Crear una instancia de CommandHandler y manejar el comando
-            CommandHandler cmdHandler;
-            cmdHandler.handleCommand(data, *this, *client);
+            // Agregar los datos recibidos al buffer persistente del cliente
+            client->getBuffer() += data;
+
+            // Procesar los comandos completos en el buffer
+            size_t pos;
+            while ((pos = client->getBuffer().find('\n')) != std::string::npos) {
+                std::string command = client->getBuffer().substr(0, pos);
+                client->getBuffer().erase(0, pos + 1);
+
+                // Crear una instancia de CommandHandler y manejar el comando
+                CommandHandler cmdHandler;
+                cmdHandler.handleCommand(command, *this, *client);
+            }
         }
     }
 }
@@ -385,4 +414,22 @@ std::string Server::getCurrentTime()
        << std::setfill('0') << std::setw(2) << nowLocal->tm_sec << " " << RESET;
 
     return ss.str();
+}
+
+void Server::handleClientReconnection(int clientSocket) {
+    for (std::vector<Client>::iterator it = this->clients.begin(); it != this->clients.end(); ++it) {
+        if (it->GetClientSocket() == clientSocket) {
+            it->SetDisconnected(false);
+
+            // Procesar los comandos almacenados
+            while (!it->getCommandQueue().empty()) {
+                std::string command = it->getCommandQueue().front();
+                it->getCommandQueue().pop();
+
+                CommandHandler cmdHandler;
+                cmdHandler.handleCommand(command, *this, *it);
+            }
+            break;
+        }
+    }
 }

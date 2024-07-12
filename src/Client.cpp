@@ -1,6 +1,6 @@
 #include "Client.hpp"
 
-Client::Client(): clientSocket(-1), clientIpAddr(""), nickSet(false), userSet(false){}
+Client::Client(): clientSocket(-1), clientIpAddr(""), nickSet(false), userSet(false), buffer(""){}
 
 Client::~Client(){}
 
@@ -69,12 +69,14 @@ void Client::SetUserSet(bool value)
 {
     this->userSet = value;
 }
-
-bool Client::IsFullyAuthenticated() const
+bool Client::getUser()
 {
-    if (nickSet == true && userSet == true)
-        return true;
-    return false;
+    return this->userSet;
+}
+
+bool Client::getNick()
+{
+    return this->nickSet;
 }
 
 // Metodos para USER
@@ -97,4 +99,49 @@ void Client::SetHostname(const std::string &hostname)
 void Client::SetServername(const std::string &servername)
 {
     this->servername = servername;
+}
+
+std::string Client::GetUsername() const
+{
+    return this->username;
+}
+
+std::string Client::GetRealname() const
+{
+    return this->realname;
+}
+
+std::string Client::GetHostname() const
+{
+    return this->hostname;
+}
+
+std::string Client::GetServername() const
+{
+    return this->servername;
+}
+
+
+// ctrl + D
+
+std::string &Client::getBuffer()
+{
+    return this->buffer;
+}
+
+// ctrl + Z
+
+bool Client::IsDisconnected() const
+{
+    return this->disconnected;
+}
+
+void Client::SetDisconnected(bool state)
+{
+    this->disconnected = state;
+}
+
+std::queue<std::string> Client::getCommandQueue()
+{
+    return this->commandQueue;
 }

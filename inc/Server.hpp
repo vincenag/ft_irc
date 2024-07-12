@@ -30,6 +30,12 @@ class Server{
         // miembro para obtener fecha y hora actuales
         static std::string getCurrentTime();
 
+        // Miembro para el ctrl + Z
+        void handleClientReconnection(int clientSocket);
+
+        //Miembro para el ctrl + C
+        void shutdownServer(); 
+
     private:
         std::string password;
         int port;

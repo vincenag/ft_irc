@@ -26,13 +26,29 @@ class Client
         // Definir estado de autenticado de USER y NICK
         void SetNickSet(bool value);
         void SetUserSet(bool value);
-        bool IsFullyAuthenticated() const;
+        bool getUser();
+        bool getNick();
 
         // Metodos para USER
         void SetUsername(const std::string &username);
         void SetRealname(const std::string &realname);
         void SetHostname(const std::string &hostname);
         void SetServername(const std::string &servername);
+
+        std::string GetUsername() const;
+        std::string GetRealname() const;
+        std::string GetHostname() const;
+        std::string GetServername() const;
+
+        // ctrl + D
+        std::string &getBuffer();
+
+        // ctrl + Z
+        bool IsDisconnected() const;
+        void SetDisconnected(bool state);
+        std::queue<std::string> getCommandQueue();
+
+
     
     private:
         int clientSocket;
@@ -49,6 +65,13 @@ class Client
         std::string realname;
         std::string hostname;
         std::string servername;
+
+        // ctrl + D 
+        std::string buffer;
+
+        // ctrl + Z
+        bool disconnected;
+        std::queue<std::string> commandQueue;
 
 };
 
