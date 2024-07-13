@@ -9,7 +9,6 @@ class CommandHandler
 {
     public:
         void handleCommand(const std::string &commandLine, Server &server, Client &client);
-        
     
     private:
         // Comandos

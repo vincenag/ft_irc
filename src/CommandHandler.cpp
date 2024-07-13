@@ -56,7 +56,7 @@ std::vector<std::string> CommandHandler::splitCommand(const std::string &command
 
 void CommandHandler::processPass(Client &client, Server &server, const std::vector<std::string> &args)
 {
-    std::string Msg =  "ERROR: Invalid password, you have been disconected.\n" ;
+    /* std::string Msg =  "ERROR: Invalid password, you have been disconected.\n" ;
 
     std::string password = args[0];
     if (server.GetPassword() == password) {
@@ -72,6 +72,29 @@ void CommandHandler::processPass(Client &client, Server &server, const std::vect
         server.RemoveClient(client.GetClientSocket());
         std::cout   << Server::getCurrentTime() 
                     << BLUE << "Client <" << client.GetClientSocket() << "> removed" << RESET << std::endl;
+    } */
+
+   // corrigiendo funcion
+   std::string Msg = "ERROR: Invalid password, you have been disconnected.\n";
+
+    if (args.empty()) {
+        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+        server.RemoveClient(client.GetClientSocket());
+        return;
+    }
+
+    std::string password = args[0];
+    if (server.GetPassword() == password) {
+        client.SetAuthenticated(true);
+        std::cout << Server::getCurrentTime() 
+                  << GREEN << "[+] Client <" << client.GetClientSocket() << "> authenticated" << RESET << std::endl;
+        Msg = "You have been authenticated. Use NICK command to continue\n";
+        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+    } else {
+        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+        std::cout << Server::getCurrentTime() 
+                  << RED << "[-] Client <" << client.GetClientSocket() << "> failed to authenticate" << RESET << std::endl;
+        server.RemoveClient(client.GetClientSocket());
     }
 }
 
@@ -117,6 +140,7 @@ void CommandHandler::processNick(Client &client, Server &server, const std::vect
         std::cout << "Nickset: " << client.getNick() << std::endl;
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
     }
+
 }
 
 void CommandHandler::processUser(Client &client, Server &/*server*/, const std::vector<std::string> &args)
@@ -157,7 +181,7 @@ void CommandHandler::processUser(Client &client, Server &/*server*/, const std::
 
 void CommandHandler::processJoin(Client &client, Server &server, const std::vector<std::string> &args)
 {
-    std::string Msg;
+    /* std::string Msg;
     if (args.size() < 1){
         Msg =  "ERROR: JOIN requires a channel and a password in case it is needed: " "JOIN <#channel> [password]\n";
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
@@ -187,7 +211,51 @@ void CommandHandler::processJoin(Client &client, Server &server, const std::vect
     }
 
     // Usa el servidor para añadir el cliente al canal
+    server.JoinChannel(client, channel, args); */
+
+    std::string Msg;
+    if (args.size() < 1){
+        Msg = "ERROR: JOIN requires a channel: JOIN <#channel>\n";
+        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+        return;
+    }
+
+    // Comprobar que USER y NICK fueron creados
+    if (client.getUser() == false || client.getNick() == false) {
+        Msg = "ERROR: You must set NICK and USER before joining a channel\n";
+        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+        return;
+    }
+
+    std::string channel = args[0];
+    if (channel[0] != '#') {
+        Msg = "ERROR: Channel name must start with '#': JOIN <#channel>\n";
+        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+        return;
+    }
+
+    // Usa el servidor para añadir el cliente al canal
     server.JoinChannel(client, channel, args);
+
+    // Mensaje de confirmación al cliente
+    Msg = ":irc_server 332 " + client.GetClientNick() + " " + channel + " :Welcome to " + channel + "\n";
+    send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+
+    // Enviar la lista de usuarios en el canal
+    Channel* channelObj = server.GetThisChannel(channel);
+    std::vector<int> users = channelObj->GetUsers();
+    std::string userList = "= " + channel + " :";
+    for (size_t i = 0; i < users.size(); i++) {
+        Client& user = server.GetClientBySocket(users[i]);
+        userList += user.GetClientNick() + " ";
+    }
+    userList += "\n";
+
+    Msg = ":irc_server 353 " + client.GetClientNick() + " " + userList;
+    send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+
+    Msg = ":irc_server 366 " + client.GetClientNick() + " " + channel + "\n";
+    send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
 }
 
 void CommandHandler::processPrivmsg(Client &client, Server &server, const std::vector<std::string> &args)

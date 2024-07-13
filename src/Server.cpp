@@ -286,7 +286,7 @@ void Server::RemoveClient(int clientSocket)
 
 void Server::JoinChannel(Client &client, std::string channelName, const std::vector<std::string> &args)
 {
-    // Comprobar si el canal ya existe
+    /* // Comprobar si el canal ya existe
     bool channelFound = ChannelExists(channelName);
 
     // Si el canal existe, se añade al cliente
@@ -347,8 +347,96 @@ void Server::JoinChannel(Client &client, std::string channelName, const std::vec
                     << MAGENTA << client.GetClientSocket() << RESET << std::endl;
         std::string Msg =  "Channel created successfully. You are now "  "Admin\n" ;
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+    } */
+
+   // correcion de la funcion
+   bool channelFound = ChannelExists(channelName);
+
+    if (channelFound) {
+        Channel* channel = GetThisChannel(channelName);
+        if (channel->getPassword() != "" && args.size() > 1 && args[1] != channel->getPassword()) {
+            std::string Msg = "ERROR: Invalid password\n";
+            send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+            return;
+        }
+        if (channel->isInviteOnly() && !channel->IsInvited(client.GetClientSocket())) {
+            std::string Msg = "ERROR: You are not invited to this channel\n";
+            send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+            return;
+        }
+        if (channel->isLimitUsersEnabled() && channel->GetUsers().size() >= channel->getLimitUsers()) {
+            std::string Msg = "ERROR: Channel is full\n";
+            send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+            return;
+        }
+        if (channel->UserExists(client.GetClientSocket())) {
+            std::string Msg = "ERROR: You are already in this channel\n";
+            send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+            return;
+        }
+        channel->AddUser(client.GetClientSocket());
+
+        // Enviar mensajes de bienvenida al canal
+        sendJoinMessages(client, *channel);
+
+        std::cout   << Server::getCurrentTime() 
+                    << GREEN << "[+] Client <" << client.GetClientSocket() << "> joined channel " 
+                    << MAGENTA << channelName << RESET << std::endl;
+        return;
+    }
+
+    if (!channelFound) {
+        Channel newChannel(channelName);
+        newChannel.AddUser(client.GetClientSocket());
+        newChannel.addOperator(client.GetClientSocket());
+        this->channels.push_back(newChannel);
+
+        // Enviar mensajes de bienvenida al canal
+        sendJoinMessages(client, newChannel);
+
+        std::cout   << Server::getCurrentTime() 
+                    << GREEN << "[+] Client <" << client.GetClientSocket() << "> has created a new channel: " 
+                    << MAGENTA << channelName << RESET << std::endl;
+        std::cout   << Server::getCurrentTime()
+                    << BLUE << "Assigned as Admin of channel: " 
+                    << MAGENTA << channelName << RESET 
+                    << BLUE << " to Client: "
+                    << MAGENTA << client.GetClientSocket() << RESET << std::endl;
     }
 }
+
+// Mensaje de bienvenida
+void Server::sendJoinMessages(Client &client, Channel &channel)
+{
+    std::string nick = client.GetClientNick();
+    std::string channelName = channel.GetName();
+    std::string serverName = "ft_irc"; // Cambia esto por el nombre de tu servidor
+
+    // Enviar el mensaje JOIN
+    std::string joinMsg = ":" + nick + "!" + client.GetUsername() + "@" + client.GetHostname() + " JOIN :" + channelName + "\n";
+    send(client.GetClientSocket(), joinMsg.c_str(), joinMsg.size(), 0);
+
+    // Enviar el mensaje RPL_TOPIC (332) si el canal tiene un tema establecido
+    if (!channel.getTopic().empty()) {
+        std::string topic = channel.getTopic();
+        std::string topicMsg = ":" + serverName + " 332 " + nick + " " + channelName + " :" + topic + "\n";
+        send(client.GetClientSocket(), topicMsg.c_str(), topicMsg.size(), 0);
+    }
+
+    // Enviar el mensaje RPL_NAMREPLY (353)
+    std::string userList = "= " + channelName + " :";
+    for (size_t i = 0; i < channel.GetUsers().size(); ++i) {
+        userList += GetClientBySocket(channel.GetUsers()[i]).GetClientNick() + " ";
+    }
+    userList += "\n";
+    std::string namesMsg = ":" + serverName + " 353 " + nick + " " + userList;
+    send(client.GetClientSocket(), namesMsg.c_str(), namesMsg.size(), 0);
+
+    // Enviar el mensaje RPL_ENDOFNAMES (366)
+    std::string endNamesMsg = ":" + serverName + " 366 " + nick + " " + channelName + " :End of /NAMES list\n";
+    send(client.GetClientSocket(), endNamesMsg.c_str(), endNamesMsg.size(), 0);
+}
+
 
 Channel* Server::GetCurrentChannel(int clientSocket)
 {
@@ -395,6 +483,16 @@ int Server::GetSocketByNick(const std::string& nick) const
             return this->clients[i].GetClientSocket();
     }
     return -1;
+}
+
+Client& Server::GetClientBySocket(int socketId)
+{
+    for (size_t i = 0; i < this->clients.size(); i++)
+    {
+        if (this->clients[i].GetClientSocket() == socketId)
+            return this->clients[i];
+    }
+    throw std::runtime_error("Client not found");
 }
 
 bool Server::ChannelExists(std::string channelName)

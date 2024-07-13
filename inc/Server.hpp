@@ -22,9 +22,14 @@ class Server{
 
         std::vector<Client> GetClients();
         int GetSocketByNick(const std::string& nick) const;
+        Client& GetClientBySocket(int socketId);
         std::vector<Channel> GetChannels();
         Channel* GetThisChannel(std::string channelName);
 
+        // Mensaje de bienvenida
+        void sendJoinMessages(Client &client, Channel &channel);
+
+        // Metodo para verificar si un canal existe
         bool ChannelExists(std::string channelName);
         Channel* GetCurrentChannel(int clientSocket);
 
