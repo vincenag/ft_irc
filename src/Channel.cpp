@@ -84,14 +84,21 @@ std::vector<int> Channel::GetUsers()
 {
     return this->users;
 }
+// --------- USUARIOS -------------
 
 bool Channel::UserExists(int clientSocket)
 {
     return std::find(this->users.begin(), this->users.end(), clientSocket) != this->users.end();
 }
 
+bool Channel::IsUserInChannel(int clientSocket) const
+{
+    return this->users.size() > 0 && std::find(this->users.begin(), this->users.end(), clientSocket) != this->users.end();
+}
 
-bool Channel::isOperator(int clientSocket) const
+// --------- OPERADORES -------------
+
+bool Channel::IsOperator(int clientSocket) const
 {
     return this->operators.find(clientSocket) != this->operators.end();
 }
@@ -106,6 +113,7 @@ void Channel::removeOperator(int clientSocket)
     this->operators.erase(clientSocket);
 }
 
+// --------- INVITADOS -------------
 
 bool Channel::isInviteOnly() const
 {
@@ -126,6 +134,46 @@ bool Channel::IsInvited(int clientSocket) const
 {
     return this->invitedUsers.find(clientSocket) != this->invitedUsers.end();
 }
+
+// --------- KICK -------------
+
+void Channel::KickUser(int userSocket, const std::string &reason)
+{
+    // Enviar mensaje de KICK a todos los usuarios del canal
+    std::vector<int>::iterator it;
+    for (it = this->users.begin(); it != this->users.end(); ++it)
+    {
+        int clientSocket = *it;
+        if (clientSocket != userSocket)
+        {
+            std::ostringstream ss;
+            ss << ":" << userSocket << " KICK " << this->name << " " << userSocket << " :" << reason << "\r\n";
+            std::string msg = ss.str();
+            send(clientSocket, msg.c_str(), msg.size(), 0);
+        }
+    }
+    // Eliminar al usuario del canal
+    this->RemoveUser(userSocket);
+}
+
+void Channel::BroadcastMessage(const std::string &message, Server &server)
+{
+    std::vector<int>::iterator it;
+    for (it = this->users.begin(); it != this->users.end(); ++it)
+    {
+        int clientSocket = *it;
+        Client *client = server.GetThisClient(clientSocket);
+        if (client != nullptr)
+        {
+            std::ostringstream ss;
+            ss << ":" << client->GetClientSocket() << " PRIVMSG " << this->name << " :" << message << "\r\n";
+            std::string msg = ss.str();
+            send(clientSocket, msg.c_str(), msg.size(), 0);
+        }
+    }
+}
+
+// --------- TOPIC -------------
 
 bool Channel::isTopicblock() const
 {

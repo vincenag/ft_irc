@@ -20,19 +20,24 @@ class Channel
 
         std::vector<int> GetUsers();
 
+        // usuarios
         bool UserExists(int clientSocket);
+        bool IsUserInChannel(int clientSocket) const;
 
         // operador de canal
-
-        bool isOperator(int clientSocket) const;
         void addOperator(int clientSocket);
         void removeOperator(int clientSocket);
+        bool IsOperator(int clientSocket) const;
 
         // invitados
         bool isInviteOnly() const;
         void setInviteOnly(bool value);
         void inviteUser(int clientSocket);
         bool IsInvited(int clientSocket) const;
+
+        // comando Kick
+        void KickUser(int userSocket, const std::string &reason);
+        void BroadcastMessage(const std::string& message, Server& server);
 
         // bloqueo de topicos
         bool isTopicblock() const;

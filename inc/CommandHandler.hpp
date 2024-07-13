@@ -9,7 +9,8 @@ class CommandHandler
 {
     public:
         void handleCommand(const std::string &commandLine, Server &server, Client &client);
-
+        
+    
     private:
         // Comandos
         void processPass(Client &client, Server &server, const std::vector<std::string> &args);

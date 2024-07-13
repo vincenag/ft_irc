@@ -193,21 +193,21 @@ void Server::acceptClient()
  */
 void Server::printIRCChatBanner(int clientSocket)
 {
-    std::string banner = RED    "  8 8888 8 888888888o.       ,o888888o.        \n" RESET;
-    banner += GREEN             "  8 8888 8 8888    `88.     8888     `88.      \n" RESET;
-    banner += YELLOW            "  8 8888 8 8888     `88  ,8 8888       `8.     \n" RESET;
-    banner += BLUE              "  8 8888 8 8888     ,88  88 8888               \n" RESET;
-    banner += MAGENTA           "  8 8888 8 8888.   ,88'  88 8888               \n" RESET;
-    banner += CYAN              "  8 8888 8 888888888P'   88 8888               \n" RESET;
-    banner += RED               "  8 8888 8 8888`8b       88 8888               \n" RESET;
-    banner += GREEN             "  8 8888 8 8888 `8b.     `8 8888       .8'     \n" RESET;
-    banner += YELLOW            "  8 8888 8 8888   `8b.      8888     ,88'      \n" RESET;
-    banner += BLUE              "  8 8888 8 8888     `88.     `8888888P'        \n" RESET;
+    std::string banner =     "  8 8888 8 888888888o.       ,o888888o.        \n";
+    banner +=                "  8 8888 8 8888    `88.     8888     `88.      \n";
+    banner +=                "  8 8888 8 8888     `88  ,8 8888       `8.     \n";
+    banner +=                "  8 8888 8 8888     ,88  88 8888               \n";
+    banner +=                "  8 8888 8 8888.   ,88'  88 8888               \n";
+    banner +=                "  8 8888 8 888888888P'   88 8888               \n";
+    banner +=                "  8 8888 8 8888`8b       88 8888               \n";
+    banner +=                "  8 8888 8 8888 `8b.     `8 8888       .8'     \n";
+    banner +=                "  8 8888 8 8888   `8b.      8888     ,88'      \n";
+    banner +=                "  8 8888 8 8888     `88.     `8888888P'        \n";
 
 
     banner += "\n\n";
-    banner += GREEN "** Welcome to the IRC Chat **\n\n" RESET;
-    banner += CYAN "Please enter the password to continue: " RESET "PASS <password>\n";
+    banner +=  "** Welcome to the IRC Chat **\n\n" ;
+    banner +=  "Please enter the password to continue: "  "PASS <password>\n";
 
     send(clientSocket, banner.c_str(), banner.size(), 0);
 }
@@ -295,28 +295,28 @@ void Server::JoinChannel(Client &client, std::string channelName, const std::vec
         //Comprobamos si el canal requiere contraseña
         if (channel->getPassword() != "" && args[1] != channel->getPassword())
         {
-            std::string Msg = RED "ERROR: Invalid password\n" RESET;
+            std::string Msg =  "ERROR: Invalid password\n" ;
             send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
             return;
         }
         //Comprobamos si el canal requiere invitacion y si esta invitado
         if (channel->isInviteOnly() && !channel->IsInvited(client.GetClientSocket()))
         {
-            std::string Msg = RED "ERROR: You are not invited to this channel\n" RESET;
+            std::string Msg =  "ERROR: You are not invited to this channel\n" ;
             send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
             return;
         }
         //Comprobar el numero de usuarios en el canal
         if (channel->isLimitUsersEnabled() && channel->GetUsers().size() >= channel->getLimitUsers())
         {
-            std::string Msg = RED "ERROR: Channel is full\n" RESET;
+            std::string Msg =  "ERROR: Channel is full\n" ;
             send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
             return;
         }
         //Comprobamos si esta ya en el canal
         if (channel->UserExists(client.GetClientSocket()))
         {
-            std::string Msg = RED "ERROR: You are already in this channel\n" RESET;
+            std::string Msg =  "ERROR: You are already in this channel\n" ;
             send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
             return;
         }
@@ -324,7 +324,7 @@ void Server::JoinChannel(Client &client, std::string channelName, const std::vec
         std::cout   << Server::getCurrentTime() 
                     << GREEN << "[+] Client <" << client.GetClientSocket() << "> joined channel " 
                     << MAGENTA << channelName << RESET << std::endl;
-        std::string Msg = GREEN "You have joined the channel\n" RESET;
+        std::string Msg =  "You have joined the channel\n" ;
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
         return;
     }
@@ -345,10 +345,31 @@ void Server::JoinChannel(Client &client, std::string channelName, const std::vec
                     << MAGENTA << channelName << RESET 
                     << BLUE << " to Client: "
                     << MAGENTA << client.GetClientSocket() << RESET << std::endl;
-        std::string Msg = GREEN "Channel created successfully. You are now " BLUE "Admin\n" RESET;
+        std::string Msg =  "Channel created successfully. You are now "  "Admin\n" ;
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
     }
 }
+
+Channel* Server::GetCurrentChannel(int clientSocket)
+{
+    for (size_t i = 0; i < this->channels.size(); i++)
+    {
+        if (this->channels[i].UserExists(clientSocket))
+            return &this->channels[i];
+    }
+    return nullptr;
+}
+
+Client* Server::GetThisClient(int clientSocket)
+{
+    for (size_t i = 0; i < this->clients.size(); i++)
+    {
+        if (this->clients[i].GetClientSocket() == clientSocket)
+            return &this->clients[i];
+    }
+    return nullptr;
+}
+
 
 std::string Server::GetPassword()
 {

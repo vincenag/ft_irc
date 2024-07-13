@@ -26,6 +26,10 @@ class Server{
         Channel* GetThisChannel(std::string channelName);
 
         bool ChannelExists(std::string channelName);
+        Channel* GetCurrentChannel(int clientSocket);
+
+        // Metodo para obtener un cliente basado en su socket
+        Client* GetThisClient(int clientSocket);
 
         // miembro para obtener fecha y hora actuales
         static std::string getCurrentTime();
@@ -34,7 +38,7 @@ class Server{
         void handleClientReconnection(int clientSocket);
 
         //Miembro para el ctrl + C
-        void shutdownServer(); 
+        void shutdownServer();
 
     private:
         std::string password;
