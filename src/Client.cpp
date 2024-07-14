@@ -1,6 +1,8 @@
 #include "Client.hpp"
 
-Client::Client(): clientSocket(-1), clientIpAddr(""), nickSet(false), userSet(false), buffer(""){}
+Client::Client(): clientSocket(-1), clientIpAddr(""), clientNick(""), Authenticated(false),
+                   nickSet(false), userSet(false), username(""), realname(""),
+                   hostname(""), servername(""), buffer(""), disconnected(false){}
 
 Client::~Client(){}
 
@@ -14,7 +16,15 @@ Client &Client::operator=(Client const &src)
         this->clientIpAddr = src.clientIpAddr;
         this->clientNick = src.clientNick;
         this->Authenticated = src.Authenticated;
-
+        this->nickSet = src.nickSet;
+        this->userSet = src.userSet;
+        this->username = src.username;
+        this->realname = src.realname;
+        this->hostname = src.hostname;
+        this->servername = src.servername;
+        this->buffer = src.buffer;
+        this->disconnected = src.disconnected;
+        this->commandQueue = src.commandQueue;
     }
     return *this;
 }

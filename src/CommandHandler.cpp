@@ -100,7 +100,7 @@ void CommandHandler::processPass(Client &client, Server &server, const std::vect
 
 void CommandHandler::processNick(Client &client, Server &server, const std::vector<std::string> &args)
 {
-    std::string Msg;
+    /* std::string Msg;
 
     if (args.size() < 1 || args[0] == "") {
         Msg =  "ERROR: NICK command requires a Nickname: "  "NICK <nickname>\n";
@@ -139,8 +139,61 @@ void CommandHandler::processNick(Client &client, Server &server, const std::vect
         Msg = "Your Nickname has been set successfully.\n";
         std::cout << "Nickset: " << client.getNick() << std::endl;
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+    } */
+
+    std::string Msg;
+    std::string serverName = "ft_irc"; // Cambia esto por el nombre de tu servidor
+    std::string nick = args.size() > 0 ? args[0] : "";
+
+    // Comprobar si se ha proporcionado un nick
+    if (nick.empty()) {
+        Msg = ":" + serverName + " 431 * :No nickname given\n"; // ERR_NONICKNAMEGIVEN
+        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+        return;
     }
 
+    // Si el cliente ya tiene este nick, enviamos un mensaje de error
+    if (client.GetClientNick() == nick) {
+        Msg = ":" + serverName + " 433 " + nick + " :Nickname is already in use\n"; // ERR_NICKNAMEINUSE
+        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+        return;
+    }
+
+    // Comprobar si el nick ya está en uso en el servidor
+    for (size_t i = 0; i < server.GetClients().size(); i++) {
+        if (server.GetClients()[i].GetClientNick() == nick && server.GetClients()[i].GetClientSocket() != client.GetClientSocket()) {
+            Msg = ":" + serverName + " 433 " + nick + " :Nickname is already in use\n"; // ERR_NICKNAMEINUSE
+            send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+            return;
+        }
+    }
+
+    // Si el nick es válido, lo establecemos
+    client.SetClientNick(nick);
+    client.SetNickSet(true); // Indicamos que el nick ha sido establecido
+    std::cout << Server::getCurrentTime() 
+              << GREEN << "[+] Client <" << client.GetClientSocket() << "> set nickname to " 
+              << MAGENTA << nick << RESET << std::endl;
+
+    // Verificar si el usuario ya ha proporcionado USER y NICK
+    if (client.getUser()) {
+        // Mensajes de bienvenida
+        Msg = ":" + serverName + " 001 " + nick + " :Welcome to the IRC network, " + nick + "\n";
+        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+
+        Msg = ":" + serverName + " 002 " + nick + " :Your host is " + serverName + ", running version 1.0\n";
+        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+
+        Msg = ":" + serverName + " 003 " + nick + " :This server was created today\n";
+        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+
+        Msg = ":" + serverName + " 004 " + nick + " " + serverName + " 1.0 o o\n";
+        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+    } else {
+        // Mensaje para completar el comando USER
+        Msg = "Your Nickname has been set. Use USER command to continue\n";
+        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+    }
 }
 
 void CommandHandler::processUser(Client &client, Server &/*server*/, const std::vector<std::string> &args)
@@ -213,6 +266,7 @@ void CommandHandler::processJoin(Client &client, Server &server, const std::vect
     // Usa el servidor para añadir el cliente al canal
     server.JoinChannel(client, channel, args); */
 
+    // Verificar se se proporcionó el nombre del canal
     std::string Msg;
     if (args.size() < 1){
         Msg = "ERROR: JOIN requires a channel: JOIN <#channel>\n";
@@ -227,6 +281,7 @@ void CommandHandler::processJoin(Client &client, Server &server, const std::vect
         return;
     }
 
+    // Verficar que el nombre del canal comience con #
     std::string channel = args[0];
     if (channel[0] != '#') {
         Msg = "ERROR: Channel name must start with '#': JOIN <#channel>\n";
@@ -234,7 +289,7 @@ void CommandHandler::processJoin(Client &client, Server &server, const std::vect
         return;
     }
 
-    // Usa el servidor para añadir el cliente al canal
+    // LLamar al servidor para añadir el cliente al canal
     server.JoinChannel(client, channel, args);
 
     // Mensaje de confirmación al cliente
@@ -251,9 +306,11 @@ void CommandHandler::processJoin(Client &client, Server &server, const std::vect
     }
     userList += "\n";
 
+    // Enviar la lista de usuarios en el canal
     Msg = ":irc_server 353 " + client.GetClientNick() + " " + userList;
     send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
 
+    // Enviar mensaje de fin de lista
     Msg = ":irc_server 366 " + client.GetClientNick() + " " + channel + "\n";
     send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
 }
@@ -346,26 +403,31 @@ void CommandHandler::processKick(Client &client, Server &server, const std::vect
     send(destSocket, Msg.c_str(), Msg.size(), 0);
     return; */
 
+    // Verificar si el comando tiene los argumentos necesarios
     std::string Msg;
-    if (args.size() < 1) {
-        Msg = "ERROR: KICK command requires a nickname: KICK <nickname> [reason]\n";
+    std::string serverName = "ft_irc"; // Cambia esto por el nombre de tu servidor
+
+    if (args.size() < 2) {
+        Msg = ":" + serverName + " 461 " + client.GetClientNick() + " KICK :Not enough parameters\n"; // ERR_NEEDMOREPARAMS
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
         return;
     }
-    std::string nick = args[0];
-    std::string reason = args.size() > 1 ? args[1] : "No reason provided";
+    
+    std::string channelName = args[0];
+    std::string nick = args[1];
+    std::string reason = args.size() > 2 ? args[2] : "No reason provided";
 
-    // Verificar si el cliente está en un canal
-    Channel* currentChannel = server.GetCurrentChannel(client.GetClientSocket());
-    if (!currentChannel) {
-        Msg = "ERROR: You are not in a channel.\n";
+    // Verificar si el canal existe
+    Channel* channel = server.GetThisChannel(channelName);
+    if (!channel) {
+        Msg = ":" + serverName + " 403 " + client.GetClientNick() + " " + channelName + " :No such channel\n"; // ERR_NOSUCHCHANNEL
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
         return;
     }
 
     // Verificar si el cliente es operador del canal
-    if (!currentChannel->IsOperator(client.GetClientSocket())) {
-        Msg = "ERROR: You need to be a channel operator to kick someone.\n";
+    if (!channel->IsOperator(client.GetClientSocket())) {
+        Msg = ":" + serverName + " 482 " + client.GetClientNick() + " " + channelName + " :You're not channel operator\n"; // ERR_CHANOPRIVSNEEDED
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
         return;
     }
@@ -373,28 +435,32 @@ void CommandHandler::processKick(Client &client, Server &server, const std::vect
     // Determinar número de socket del destinatario
     int destSocket = server.GetSocketByNick(nick);
     if (destSocket == -1) {
-        Msg = "ERROR: User does not exist\n";
+        Msg = ":" + serverName + " 401 " + client.GetClientNick() + " " + nick + " :No such nick/channel\n"; // ERR_NOSUCHNICK
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
         return;
     }
 
-    // Determinar si el usuario está en el canal
-    if (!currentChannel->IsUserInChannel(destSocket)) {
-        Msg = "ERROR: User is not in the channel.\n";
+    // Verificar si el usuario a ser expulsado está en el canal
+    if (!channel->IsUserInChannel(destSocket)) {
+        Msg = ":" + serverName + " 441 " + client.GetClientNick() + " " + nick + " " + channelName + " :They aren't on that channel\n"; // ERR_USERNOTINCHANNEL
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
         return;
     }
 
     // Expulsar al usuario del canal
-    currentChannel->KickUser(destSocket, reason);
+    channel->RemoveUser(destSocket);
+    channel->removeOperator(destSocket);  // Eliminar de la lista de administradores en caso de serlo
 
-    // Notificar al canal
-    Msg = nick + " has been kicked from the channel. Reason: " + reason + "\n";
-    currentChannel->BroadcastMessage(Msg, server);
+    // Notificar a todos los usuarios del canal sobre la expulsión
+    Msg = ":" + client.GetClientNick() + "!" + client.GetUsername() + "@" + client.GetHostname() + " KICK " + channelName + " " + nick + " :" + reason + "\n";
+    std::vector<int> users = channel->GetUsers();
+    for (size_t i = 0; i < users.size(); ++i) {
+        send(users[i], Msg.c_str(), Msg.size(), 0);
+    }
 
     // Notificar al usuario expulsado
-    Msg = "You have been kicked from " + currentChannel->GetName() + ". Reason: " + reason + "\n";
-    send(destSocket, Msg.c_str(), Msg.size(), 0);
+    std::string kickMsg = ":" + serverName + " 474 " + nick + " " + channelName + " :You have been kicked from the channel. Reason: " + reason + "\n"; // RPL_KICKED
+    send(destSocket, kickMsg.c_str(), kickMsg.size(), 0);
 }
 
 void CommandHandler::processInvite(Client &client, Server &server, const std::vector<std::string> &args)
