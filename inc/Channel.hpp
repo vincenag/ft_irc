@@ -43,7 +43,8 @@ class Channel
         bool isTopicblock() const;
         void setTopicblock(bool value);
         void setTopic(std::string topic);
-        std::string getTopic() const;
+        const std::string &getTopic() const;
+        void SetTopic(const std::string &newTopic);
 
         void setPassword(std::string password);
         std::string getPassword() const;

@@ -26,8 +26,9 @@ class Server{
         std::vector<Channel> GetChannels();
         Channel* GetThisChannel(std::string channelName);
 
-        // Mensaje de bienvenida
+        // Mensajes para el cliente hexchat
         void sendJoinMessages(Client &client, Channel &channel);
+        void broadcastToChannel(Channel &channel, const std::string &message, int clientSocket);
 
         // Metodo para verificar si un canal existe
         bool ChannelExists(std::string channelName);

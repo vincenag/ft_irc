@@ -419,7 +419,7 @@ void Server::JoinChannel(Client &client, std::string channelName, const std::vec
 // Mensaje de bienvenida
 void Server::sendJoinMessages(Client &client, Channel &channel)
 {
-    std::string nick = client.GetClientNick();
+    /* std::string nick = client.GetClientNick();
     std::string channelName = channel.GetName();
     std::string serverName = "ft_irc"; // Cambia esto por el nombre de tu servidor
 
@@ -433,8 +433,20 @@ void Server::sendJoinMessages(Client &client, Channel &channel)
         }
     }
 
+    // Enviar el mensaje RPL_TOPIC (332) o RPL_NOTOPIC (331)
+    std::string topic = channel.getTopic(); // Assuming you have a method to get the topic of the channel
+    std::string topicMsg;
+    if (topic.empty()) {
+        topicMsg = ":" + serverName + " 331 " + nick + " " + channelName + " :No topic is set\n";
+    } else {
+        topicMsg = ":" + serverName + " 332 " + nick + " " + channelName + " :" + topic + "\n";
+    }
+
+    send(client.GetClientSocket(), topicMsg.c_str(), topicMsg.size(), 0);
+
     // Construir el mensaje RPL_NAMREPLY (353)
-    std::string userList = "= " + channelName + " :";
+    std::string namesPrefix = ":" + serverName + " 353 " + nick + " = " + channelName + " :";
+    std::string userList;
     for (it = channel.GetUsers().begin(); it != channel.GetUsers().end(); ++it) {
         Client* user = GetThisClient(*it);
         if (user) {
@@ -442,17 +454,59 @@ void Server::sendJoinMessages(Client &client, Channel &channel)
         }
     }
     userList += "\n";
-    std::string namesMsg = ":" + serverName + " 353 " + nick + " " + userList;
+    std::string namesMsg = namesPrefix + userList;
 
     // Construir el mensaje RPL_ENDOFNAMES (366)
     std::string endNamesMsg = ":" + serverName + " 366 " + nick + " " + channelName + " :End of /NAMES list\n";
 
-    // Enviar los mensajes a todos los usuarios en el canal
-    for (it = channel.GetUsers().begin(); it != channel.GetUsers().end(); ++it) {
+    // Enviar los mensajes de nombres de usuario al cliente que se une
+    send(client.GetClientSocket(), namesMsg.c_str(), namesMsg.size(), 0);
+    send(client.GetClientSocket(), endNamesMsg.c_str(), endNamesMsg.size(), 0); */
+
+    std::string nick = client.GetClientNick();
+    std::string channelName = channel.GetName();
+    std::string serverName = "ft_irc"; // Cambia esto por el nombre de tu servidor
+
+    // Enviar el mensaje JOIN a todos los usuarios del canal, incluido el que se une
+    std::string joinMsg = ":" + nick + "!" + client.GetUsername() + "@" + client.GetHostname() + " JOIN :" + channelName + "\n";
+    broadcastToChannel(channel, joinMsg, -1);
+
+    // Enviar el mensaje RPL_TOPIC (332) si el canal tiene un tema establecido
+    std::string topic = channel.getTopic();
+    std::string topicMsg;
+    if (!topic.empty()) {
+        topicMsg = ":" + serverName + " 332 " + nick + " " + channelName + " :" + topic + "\n";
+    } else {
+        topicMsg = ":" + serverName + " 331 " + nick + " " + channelName + " :No topic is set\n";
+    }
+    send(client.GetClientSocket(), topicMsg.c_str(), topicMsg.size(), 0);
+
+    // Construir y enviar el mensaje RPL_NAMREPLY (353)
+    std::string namesPrefix = ":" + serverName + " 353 " + nick + " = " + channelName + " :";
+    std::string userList;
+    std::vector<int> users = channel.GetUsers();
+    for (std::vector<int>::iterator it = users.begin(); it != users.end(); ++it) {
         Client* user = GetThisClient(*it);
         if (user) {
-            send(user->GetClientSocket(), namesMsg.c_str(), namesMsg.size(), 0);
-            send(user->GetClientSocket(), endNamesMsg.c_str(), endNamesMsg.size(), 0);
+            userList += user->GetClientNick() + " ";
+        }
+    }
+    userList += "\n";
+    std::string namesMsg = namesPrefix + userList;
+    send(client.GetClientSocket(), namesMsg.c_str(), namesMsg.size(), 0);
+
+    // Construir y enviar el mensaje RPL_ENDOFNAMES (366)
+    std::string endNamesMsg = ":" + serverName + " 366 " + nick + " " + channelName + " :End of /NAMES list\n";
+    send(client.GetClientSocket(), endNamesMsg.c_str(), endNamesMsg.size(), 0);
+}
+
+void Server::broadcastToChannel(Channel &channel, const std::string &message, int clientSocket)
+{
+    std::vector<int> users = channel.GetUsers(); // Asume que GetUsers devuelve un std::vector<int>
+    for (std::vector<int>::iterator it = users.begin(); it != users.end(); ++it) {
+        int userSocket = *it;
+        if (userSocket != clientSocket) {
+            send(userSocket, message.c_str(), message.size(), 0);
         }
     }
 }

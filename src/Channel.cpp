@@ -190,9 +190,14 @@ void Channel::setTopic(std::string topic)
     this->topic = topic;
 }
 
-std::string Channel::getTopic() const
+const std::string &Channel::getTopic() const
 {
     return this->topic;
+}
+
+void Channel::SetTopic(const std::string &newTopic)
+{
+    this->topic = newTopic;
 }
 
 void Channel::setPassword(std::string password)
