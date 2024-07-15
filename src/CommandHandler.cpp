@@ -523,7 +523,7 @@ void CommandHandler::processKick(Client &client, Server &server, const std::vect
 void CommandHandler::processInvite(Client &client, Server &server, const std::vector<std::string> &args)
 {
 
-    std::string Msg;
+    /* std::string Msg;
     if (args.size() < 2) {
         Msg =  "ERROR: INVITE command requires a channel and a nickname: "  "INVITE <nickname> <#channel>\n";
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
@@ -562,8 +562,45 @@ void CommandHandler::processInvite(Client &client, Server &server, const std::ve
     std::string InvitingUser = client.GetClientNick();
     Msg =  "You have been invited to the channel " + channel + " by " + InvitingUser + "\n" ;
     send(destSocket, Msg.c_str(), Msg.size(), 0);
-    return;
+    return; */
 
+    if (args.size() < 2) {
+        Utiles::sendNumericReply(client, 461, "INVITE :Not enough parameters");
+        return;
+    }
+
+    std::string nick = args[0];
+    std::string channel = args[1];
+
+    // Verificar si el canal existe
+    Channel* channelObj = server.GetThisChannel(channel);
+    if (!channelObj) {
+        Utiles::sendNumericReply(client, 403, channel + " :No such channel");
+        return;
+    }
+
+    // Verificar si el cliente es miembro del canal
+    if (!channelObj->IsUserInChannel(client.GetClientSocket())) {
+        Utiles::sendNumericReply(client, 442, channel + " :You're not on that channel");
+        return;
+    }
+
+    // Verificar si el destinatario existe
+    int destSocket = server.GetSocketByNick(nick);
+    if (destSocket == -1) {
+        Utiles::sendNumericReply(client, 401, nick + " :No such nick/channel");
+        return;
+    }
+
+    // Verificar si el destinatario ya está en el canal
+    if (channelObj->IsUserInChannel(destSocket)) {
+        Utiles::sendNumericReply(client, 443, nick + " " + channel + " :is already on channel");
+        return;
+    }
+
+    // Enviar la invitación
+    std::string inviteMsg = ":" + client.GetClientNick() + " INVITE " + nick + " :" + channel + "\r\n";    send(destSocket, inviteMsg.c_str(), inviteMsg.size(), 0);
+    Utiles::sendNumericReply(client, 341, nick + " " + channel);
 }
 
 void CommandHandler::processTopic(Client &client, Server &server, const std::vector<std::string> &args)
@@ -745,7 +782,7 @@ std::string Msg;
 
 void CommandHandler::sendToChannel(Server &server, const std::string &channelName, const std::string &msg, Client &client)
 {
-    Channel* channel = server.GetThisChannel(channelName);
+    /* Channel* channel = server.GetThisChannel(channelName);
     if (channel != nullptr) {
         // Comprobar si el usuario está en el canal
         if (!channel->UserExists(client.GetClientSocket())) {
@@ -765,7 +802,30 @@ void CommandHandler::sendToChannel(Server &server, const std::string &channelNam
     }
     std::string Msg = "ERROR: Channel does not exist\n";
     send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-    return;
+    return; */
+
+    // Funcion con protocolo implementada
+    Channel* channel = server.GetThisChannel(channelName);
+    if (channel == NULL) {
+        std::string errorMsg = "ERROR :No such channel\r\n";
+        send(client.GetClientSocket(), errorMsg.c_str(), errorMsg.size(), 0);
+        return;
+    }
+
+    if (!channel->UserExists(client.GetClientSocket())) {
+        std::string errorMsg = "ERROR :You're not in that channel\r\n";
+        send(client.GetClientSocket(), errorMsg.c_str(), errorMsg.size(), 0);
+        return;
+    }
+
+    std::string message = ":" + client.GetClientNick() + "!~" + client.GetUsername() + "@" + client.GetHostname() + " PRIVMSG " + channelName + " :" + msg + "\r\n";
+
+    std::vector<int> users = channel->GetUsers();
+    for (std::vector<int>::iterator it = users.begin(); it != users.end(); ++it) {
+        if (*it != client.GetClientSocket()) {
+            send(*it, message.c_str(), message.size(), 0);
+        }
+    }
 }
 
 void CommandHandler::sendToClient(Server &server, const std::string &clientNick, const std::string &msg, Client &client)
