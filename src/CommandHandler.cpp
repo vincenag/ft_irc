@@ -605,7 +605,7 @@ void CommandHandler::processInvite(Client &client, Server &server, const std::ve
 
 void CommandHandler::processTopic(Client &client, Server &server, const std::vector<std::string> &args)
 {
-    std::string Msg;
+    /* std::string Msg;
 
     if (args.size() < 1) {
         Msg =  "ERROR: TOPIC command requires a channel: "  "TOPIC <#channel>\n";
@@ -655,126 +655,168 @@ void CommandHandler::processTopic(Client &client, Server &server, const std::vec
     channelObj->setTopic(topic);
     Msg = "Topic has been set\n";
     send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-    return;
+    return; */
+
+    // Segun protocolo
+    if (args.size() < 1) {
+        // Enviar error si no se proporciona el nombre del canal
+        Utiles::sendNumericReply(client, 461, "TOPIC :Not enough parameters");
+        return;
+    }
+
+    std::string channelName = args[0];
+    Channel* channel = server.GetThisChannel(channelName); // Asumiendo que existe este método en Server
+
+    if (channel == nullptr) {
+        // Enviar error si el canal no existe
+        Utiles::sendNumericReply(client, 403, channelName + " :No such channel");
+        return;
+    }
+
+    if (args.size() == 1) {
+        // Si solo se proporciona el nombre del canal, devolver el tema actual
+        std::string currentTopic = channel->getTopic();
+        if (currentTopic.empty()) {
+            Utiles::sendNumericReply(client, 331, channelName + " :No topic is set");
+        } else {
+            Utiles::sendNumericReply(client, 332, client.GetClientNick() + " " + channelName + " :" + currentTopic);
+        }
+    } else if (channel->IsOperator(client.GetClientSocket())) {
+        // Cambiar el tema si el cliente es operador del canal
+        std::string newTopic;
+        for (size_t i = 1; i < args.size(); ++i) {
+            if (i > 1) newTopic += " ";
+            newTopic += args[i];
+        }
+
+        channel->SetTopic(newTopic);
+        std::string msg = ":" + client.GetClientNick() + " TOPIC " + channelName + " :" + newTopic + "\r\n";
+        channel->BroadcastMessage(msg, server);
+    } else {
+        // Enviar error si el cliente no es operador del canal
+        Utiles::sendNumericReply(client, 482, channelName + " :You're not channel operator");
+    }
 }
 
 void CommandHandler::processMode(Client &client, Server &server, const std::vector<std::string> &args)
 {
-std::string Msg;
-    if (args.size() < 2) {
-        Msg = "ERROR: MODE command requires a channel and a mode: " "MODE <#channel> <mode>\n";
-        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-        return;
-    }
-    std::string channel = args[0];
-    std::string mode = args[1];
-
-    Channel* channelObj = server.GetThisChannel(channel);
-
-    //Establecer el modo
-    if (mode == "+i") {
-        channelObj->setInviteOnly(true);
-        Msg = "Invite only mode has been set\n";
-        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-        return;
-    } else if (mode == "-i") {
-        channelObj->setInviteOnly(false);
-        Msg = "Invite only mode has been removed\n";
-        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-        return;
-    } else if (mode == "+t") {
-        channelObj->setTopicblock(true);
-        Msg = "Topic block mode has been set\n";
-        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-        return;
-    } else if (mode == "-t") {
-        channelObj->setTopicblock(false);
-        Msg = "Topic block mode has been removed\n";
-        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-        return;
-    }  else if (mode == "+o" || mode == "-o") {
-        if (args.size() < 3) {
-            Msg = "ERROR: MODE command requires a channel, a mode and a nickname: " "MODE <#channel> <mode> <nickname>\n";
+/*     std::string Msg;
+        if (args.size() < 2) {
+            Msg = "ERROR: MODE command requires a channel and a mode: " "MODE <#channel> <mode>\n";
             send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
             return;
         }
-        std::string nick = args[2];
-        //Comprobar si el usuario destino está en el canal
-        int destSocket = server.GetSocketByNick(nick);
-        bool found = false;
-        for (size_t i = 0; i < channelObj->GetUsers().size(); i++) {
-            if (channelObj->GetUsers()[i] == destSocket) {
-                found = true;
-                break;
+        std::string channel = args[0];
+        std::string mode = args[1];
+
+        Channel* channelObj = server.GetThisChannel(channel);
+
+        //Establecer el modo
+        if (mode == "+i") {
+            channelObj->setInviteOnly(true);
+            Msg = "Invite only mode has been set\n";
+            send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+            return;
+        } else if (mode == "-i") {
+            channelObj->setInviteOnly(false);
+            Msg = "Invite only mode has been removed\n";
+            send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+            return;
+        } else if (mode == "+t") {
+            channelObj->setTopicblock(true);
+            Msg = "Topic block mode has been set\n";
+            send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+            return;
+        } else if (mode == "-t") {
+            channelObj->setTopicblock(false);
+            Msg = "Topic block mode has been removed\n";
+            send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+            return;
+        }  else if (mode == "+o" || mode == "-o") {
+            if (args.size() < 3) {
+                Msg = "ERROR: MODE command requires a channel, a mode and a nickname: " "MODE <#channel> <mode> <nickname>\n";
+                send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+                return;
             }
-        }
-        if (!found) {
-            Msg = "ERROR: User is not in the channel\n";
+            std::string nick = args[2];
+            //Comprobar si el usuario destino está en el canal
+            int destSocket = server.GetSocketByNick(nick);
+            bool found = false;
+            for (size_t i = 0; i < channelObj->GetUsers().size(); i++) {
+                if (channelObj->GetUsers()[i] == destSocket) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                Msg = "ERROR: User is not in the channel\n";
+                send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+                return;
+            }
+            //Agregar el usuario como operador al canal
+            if (mode == "+o") {
+                channelObj->addOperator(destSocket);
+                Msg = "User has been set as operator\n";
+                send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+                Msg = "You are now an operator of channel " + channel + "\n";
+                send(destSocket, Msg.c_str(), Msg.size(), 0);
+                return;
+            } else {
+                channelObj->removeOperator(destSocket);
+                Msg = "User has been removed as operator\n";
+                send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+                Msg = "You are no longer an operator of channel " + channel + "\n";
+                send(destSocket, Msg.c_str(), Msg.size(), 0);
+                return;
+            }
+        }   else if (mode == "+k"){
+            if (args.size() < 3) {
+                Msg = "ERROR: MODE command requires a channel, a mode and a password: " "MODE <#channel> <mode> <password>\n";
+                send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+                return;
+            }
+            std::string password = args[2];
+            channelObj->setPassword(password);
+            Msg = "Password has been set\n";
             send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
             return;
-        }
-        //Agregar el usuario como operador al canal
-        if (mode == "+o") {
-            channelObj->addOperator(destSocket);
-            Msg = "User has been set as operator\n";
+        } else if (mode == "-k"){
+            channelObj->setPassword("");
+            Msg = "Password has been removed\n";
             send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-            Msg = "You are now an operator of channel " + channel + "\n";
-            send(destSocket, Msg.c_str(), Msg.size(), 0);
+            return;
+        } else if (mode == "+l") {
+            if (args.size() < 3) {
+                Msg = "ERROR: MODE command requires a channel, a mode and a limit: " "MODE <#channel> <mode> <limit>\n";
+                send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+                return;
+            }
+            unsigned int limit;
+            std::stringstream ss(args[2]);
+            if (!(ss >> limit) || isNumber(args[2]) == false){
+                Msg = "ERROR: Invalid number\n";
+                send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+                return;
+            }
+            channelObj->setLimitUsers(limit);
+            channelObj->setLimitUsersEnabled(true);
+            Msg = "User limit has been set\n";
+            send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+            return;
+        } else if (mode == "-l") {
+            channelObj->setLimitUsers(0);
+            channelObj->setLimitUsersEnabled(false);
+            Msg = "User limit has been removed\n";
+            send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
             return;
         } else {
-            channelObj->removeOperator(destSocket);
-            Msg = "User has been removed as operator\n";
-            send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-            Msg = "You are no longer an operator of channel " + channel + "\n";
-            send(destSocket, Msg.c_str(), Msg.size(), 0);
-            return;
-        }
-    }   else if (mode == "+k"){
-        if (args.size() < 3) {
-            Msg = "ERROR: MODE command requires a channel, a mode and a password: " "MODE <#channel> <mode> <password>\n";
+            Msg = "ERROR: Invalid mode\n";
             send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
             return;
-        }
-        std::string password = args[2];
-        channelObj->setPassword(password);
-        Msg = "Password has been set\n";
-        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-        return;
-    } else if (mode == "-k"){
-        channelObj->setPassword("");
-        Msg = "Password has been removed\n";
-        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-        return;
-    } else if (mode == "+l") {
-        if (args.size() < 3) {
-            Msg = "ERROR: MODE command requires a channel, a mode and a limit: " "MODE <#channel> <mode> <limit>\n";
-            send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-            return;
-        }
-        unsigned int limit;
-        std::stringstream ss(args[2]);
-        if (!(ss >> limit) || isNumber(args[2]) == false){
-            Msg = "ERROR: Invalid number\n";
-            send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-            return;
-        }
-        channelObj->setLimitUsers(limit);
-        channelObj->setLimitUsersEnabled(true);
-        Msg = "User limit has been set\n";
-        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-        return;
-    } else if (mode == "-l") {
-        channelObj->setLimitUsers(0);
-        channelObj->setLimitUsersEnabled(false);
-        Msg = "User limit has been removed\n";
-        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-        return;
-    } else {
-        Msg = "ERROR: Invalid mode\n";
-        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-        return;
-  
-    }
+    
+        } */
+
+       // Con protocolo
 
 }
 
