@@ -314,7 +314,7 @@ void CommandHandler::processJoin(Client &client, Server &server, const std::vect
 
 void CommandHandler::processPrivmsg(Client &client, Server &server, const std::vector<std::string> &args)
 {
-    std::string Msg;
+    /* std::string Msg;
     if (args.size() < 2) {
         Msg = "ERROR: PRIVMSG command requires a nick or channel and a message: " "PRIVMSG <nick or #channel> :<message>\n";
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
@@ -349,6 +349,37 @@ void CommandHandler::processPrivmsg(Client &client, Server &server, const std::v
         sendToClient(server, destinatary, msgContent, client);
         Msg = "Message sent to user\n";
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+    } */
+
+   if (args.size() < 2) {
+        std::string Msg = "ERROR: PRIVMSG command requires a nick or channel and a message: PRIVMSG <nick or #channel> :<message>\n";
+        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+        return;
+    }
+
+    std::string destinatary = args[0];
+    std::string message = args[1];
+    for (size_t i = 2; i < args.size(); ++i) {
+        message += " " + args[i];
+    }
+
+    // Asumiendo que tienes métodos para verificar si el destinatario es un usuario o un canal
+    if (server.ChannelExists(destinatary)) {
+        // Si es un canal, reenvía el mensaje a todos los usuarios en el canal
+        Channel* channel = server.GetThisChannel(destinatary);
+        if (channel) {
+            std::string fullMessage = ":" + client.GetClientNick() + " PRIVMSG " + destinatary + " :" + message + "\n";
+            server.broadcastToChannel(*channel, fullMessage, client.GetClientSocket());
+        }
+    } else if (server.isUser(destinatary)) {
+        // Si es un usuario, envía el mensaje solo a ese usuario
+        Client* recipient = server.GetUserByNick(destinatary);
+        std::string fullMessage = ":" + client.GetClientNick() + " PRIVMSG " + destinatary + " :" + message + "\n";
+        send(recipient->GetClientSocket(), fullMessage.c_str(), fullMessage.size(), 0);
+    } else {
+        // Destinatario no encontrado
+        std::string errMsg = "ERROR: No such nick/channel\n";
+        send(client.GetClientSocket(), errMsg.c_str(), errMsg.size(), 0);
     }
     
 }

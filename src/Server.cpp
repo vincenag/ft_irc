@@ -589,6 +589,27 @@ Channel* Server::GetThisChannel(std::string channelName)
     return nullptr;
 }
 
+Client* Server::GetUserByNick(const std::string& nick)
+{
+    if (isUser(nick)) { // Primero verifica si el usuario existe
+        int socketId = GetSocketByNick(nick); // Obtiene el socketId basado en el nickname
+        if (socketId != -1) { // Asegúrate de que el socketId es válido
+            return GetThisClient(socketId); // Retorna el puntero al Client
+        }
+    }
+    return nullptr; // Retorna nullptr si el usuario no existe o si hubo algún error
+}
+
+bool Server::isUser(const std::string &nick) const
+{
+    for (size_t i = 0; i < this->clients.size(); i++)
+    {
+        if (this->clients[i].GetClientNick() == nick)
+            return true;
+    }
+    return false;
+}
+
 /**
     * @brief Función que obtiene fecha y hora actuales
  */

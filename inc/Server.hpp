@@ -25,6 +25,8 @@ class Server{
         Client& GetClientBySocket(int socketId);
         std::vector<Channel> GetChannels();
         Channel* GetThisChannel(std::string channelName);
+        Client* GetUserByNick(const std::string& nick);
+        bool isUser(const std::string &nick) const;
 
         // Mensajes para el cliente hexchat
         void sendJoinMessages(Client &client, Channel &channel);
