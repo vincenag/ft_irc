@@ -222,11 +222,8 @@ void CommandHandler::processUser(Client &client, Server &/*server*/, const std::
     if (client.getUser() == false || client.getNick() == false) {
         Msg = "Your User information has been set. Use NICK command to continue\n";
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-
-        std::cout << "Userset: " << client.getUser() << std::endl;
         return;
     }
-    std::cout << "Userset: " << client.getUser() << std::endl;
     Msg = "Your User information has been set successfully.\n";
     send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
 
