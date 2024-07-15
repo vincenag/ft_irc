@@ -700,7 +700,7 @@ void CommandHandler::processTopic(Client &client, Server &server, const std::vec
 
 void CommandHandler::processMode(Client &client, Server &server, const std::vector<std::string> &args)
 {
-/*     std::string Msg;
+    std::string Msg;
         if (args.size() < 2) {
             Msg = "ERROR: MODE command requires a channel and a mode: " "MODE <#channel> <mode>\n";
             send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
@@ -814,7 +814,7 @@ void CommandHandler::processMode(Client &client, Server &server, const std::vect
             send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
             return;
     
-        } */
+        }
 
        // Con protocolo
 
