@@ -4,6 +4,7 @@
 #include "Library.hpp"
 class Client;
 class Server;
+class Utiles;
 
 class CommandHandler 
 {

@@ -1,8 +1,9 @@
 #include "Client.hpp"
 
-Client::Client(): clientSocket(-1), clientIpAddr(""), clientNick(""), Authenticated(false),
-                   nickSet(false), userSet(false), username(""), realname(""),
-                   hostname(""), servername(""), buffer(""), disconnected(false){}
+Client::Client():   clientSocket(0), clientIpAddr(""), clientNick(""), Authenticated(false), 
+                    nickSet(false), userSet(false), username(""), realname(""), 
+                    hostname(""), servername(""), buffer(""), disconnected(false), 
+                    registered(false){}
 
 Client::~Client(){}
 
@@ -25,6 +26,7 @@ Client &Client::operator=(Client const &src)
         this->buffer = src.buffer;
         this->disconnected = src.disconnected;
         this->commandQueue = src.commandQueue;
+        this->registered = src.registered;
     }
     return *this;
 }
@@ -110,6 +112,19 @@ void Client::SetServername(const std::string &servername)
 {
     this->servername = servername;
 }
+
+bool Client::IsRegistered() const
+{
+    return this->registered;
+}
+
+void Client::SetRegistered(bool value)
+{
+    this->registered = value;
+}
+
+
+// ctrl + D
 
 std::string Client::GetUsername() const
 {

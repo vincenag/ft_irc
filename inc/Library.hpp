@@ -41,5 +41,6 @@
 #include "ArgumentsValidator.hpp"
 #include "Channel.hpp"
 #include "CommandHandler.hpp"
+#include "Utiles.hpp"
 
 #endif

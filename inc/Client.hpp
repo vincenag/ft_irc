@@ -34,6 +34,8 @@ class Client
         void SetRealname(const std::string &realname);
         void SetHostname(const std::string &hostname);
         void SetServername(const std::string &servername);
+        bool IsRegistered() const;
+        void SetRegistered(bool value);
 
         std::string GetUsername() const;
         std::string GetRealname() const;
@@ -72,7 +74,8 @@ class Client
         // ctrl + Z
         bool disconnected;
         std::queue<std::string> commandQueue;
-
+        
+        bool registered;
 };
 
 #endif

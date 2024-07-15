@@ -198,7 +198,7 @@ void CommandHandler::processNick(Client &client, Server &server, const std::vect
 
 void CommandHandler::processUser(Client &client, Server &/*server*/, const std::vector<std::string> &args)
 {
-    std::string Msg;
+    /* std::string Msg;
 
     if (args.size() < 4) {
         Msg = "ERROR: USER command requires 4 arguments:\n" "USER <username> <hostname> <servername> <realname>\n";
@@ -214,18 +214,44 @@ void CommandHandler::processUser(Client &client, Server &/*server*/, const std::
 
     // Enviar confirmación al cliente
     client.SetUserSet(true);
-    /* if (!client.IsFullyAuthenticated()) {
-        Msg = GREEN "Your User information has been set. Use NICK command to continue\n" RESET;
-    } else if(client.IsFullyAuthenticated()) {
-        Msg = GREEN "Your User information has been set successfully.\n" RESET;
-    } */
     if (client.getUser() == false || client.getNick() == false) {
         Msg = "Your User information has been set. Use NICK command to continue\n";
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
         return;
     }
     Msg = "Your User information has been set successfully.\n";
-    send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+    send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0); */
+
+    if (client.IsRegistered()) {
+        // 462 es el código de error para "Ya estás registrado"
+        Utiles::sendNumericReply(client, 462, "You're already registered");
+        return;
+    }
+
+    if (args.size() < 4) {
+        // 461 es el código de error para "Necesitas más parámetros"
+        Utiles::sendNumericReply(client, 461, "USER :Not enough parameters");
+        return;
+    }
+
+    // Actualizar la información del cliente
+    client.SetUsername(args[0]);
+    client.SetHostname(args[1]);
+    client.SetServername(args[2]);
+    client.SetRealname(args[3]);
+    client.SetUserSet(true);
+
+    // Verificar si el cliente ya ha establecido su NICK y está completamente registrado
+    if (client.getNick() && !client.IsRegistered()) {
+        // Marcar al cliente como registrado
+        client.SetRegistered(true);
+
+        // Enviar mensajes de bienvenida y MOTD
+        Utiles::sendWelcomeMessage(client);
+    } else {
+        // Informar al cliente que debe usar el comando NICK para completar el registro
+        Utiles::sendNumericReply(client, -1, "Your User information has been set. Use NICK command to complete registration.");
+    }
 
 }
 
@@ -290,7 +316,7 @@ void CommandHandler::processJoin(Client &client, Server &server, const std::vect
     server.JoinChannel(client, channel, args);
 
     // Mensaje de confirmación al cliente
-    Msg = ":irc_server 332 " + client.GetClientNick() + " " + channel + " :Welcome to " + channel + "\n";
+    Msg = ":ft_irc 332 " + client.GetClientNick() + " " + channel + " :Welcome to " + channel + "\n";
     send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
 
     // Enviar la lista de usuarios en el canal
@@ -303,13 +329,16 @@ void CommandHandler::processJoin(Client &client, Server &server, const std::vect
     }
     userList += "\n";
 
-    // Enviar la lista de usuarios en el canal
-    Msg = ":irc_server 353 " + client.GetClientNick() + " " + userList;
+    /**
+     * ! Este codigo se estaba repitiendo dos veces al creal el canal, ya esta en server
+     */
+    /* // Enviar la lista de usuarios en el canal
+    Msg = ":ft_irc 353 " + client.GetClientNick() + " " + userList;
     send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
 
     // Enviar mensaje de fin de lista
-    Msg = ":irc_server 366 " + client.GetClientNick() + " " + channel + "\n";
-    send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+    Msg = ":ft_irc 366 " + client.GetClientNick() + " " + channel + "\n";
+    send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0); */
 }
 
 void CommandHandler::processPrivmsg(Client &client, Server &server, const std::vector<std::string> &args)
