@@ -212,6 +212,25 @@ void Channel::SetTopic(const std::string &newTopic)
     this->topic = newTopic;
 }
 
+// --------- MODOS DEL CANAL -------------
+
+bool Channel::isModeSet(char mode) const
+{
+    return this->modes.find(mode) != this->modes.end();
+}
+
+void Channel::setMode(char mode)
+{
+    this->modes.insert(mode);
+}
+
+void Channel::unsetMode(char mode)
+{
+    this->modes.erase(mode);
+}
+
+// --------- PASSWORD -------------
+
 void Channel::setPassword(std::string password)
 {
     this->password = password;

@@ -48,6 +48,11 @@ class Channel
         const std::string &getTopic() const;
         void SetTopic(const std::string &newTopic);
 
+        // Modos del canal
+        bool isModeSet(char mode) const;
+        void setMode(char mode);
+        void unsetMode(char mode);
+
         void setPassword(std::string password);
         std::string getPassword() const;
 
@@ -57,6 +62,7 @@ class Channel
         void setLimitUsersEnabled(bool value);
 
     private:
+        std::set<char> modes; // Modos del canal
         std::string name;
         std::vector<int> users;
         std::set<int> operators; // Almacenamos sockets de los operadores
