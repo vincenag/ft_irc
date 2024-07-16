@@ -28,6 +28,8 @@ class Channel
         void addOperator(int clientSocket);
         void removeOperator(int clientSocket);
         bool IsOperator(int clientSocket) const;
+        void SetOperator(int clientSocket, bool isOperator);
+
 
         // invitados
         bool isInviteOnly() const;

@@ -113,6 +113,18 @@ void Channel::removeOperator(int clientSocket)
     this->operators.erase(clientSocket);
 }
 
+void Channel::SetOperator(int clientSocket, bool isOperator)
+{
+    if (isOperator)
+    {
+        this->addOperator(clientSocket);
+    }
+    else
+    {
+        this->removeOperator(clientSocket);
+    }
+}
+
 // --------- INVITADOS -------------
 
 bool Channel::isInviteOnly() const

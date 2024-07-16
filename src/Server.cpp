@@ -482,22 +482,7 @@ void Server::sendJoinMessages(Client &client, Channel &channel)
     send(client.GetClientSocket(), topicMsg.c_str(), topicMsg.size(), 0);
 
     // Construir y enviar el mensaje RPL_NAMREPLY (353)
-    std::string namesPrefix = ":" + serverName + " 353 " + nick + " = " + channelName + " :";
-    std::string userList;
-    std::vector<int> users = channel.GetUsers();
-    for (std::vector<int>::iterator it = users.begin(); it != users.end(); ++it) {
-        Client* user = GetThisClient(*it);
-        if (user) {
-            userList += user->GetClientNick() + " ";
-        }
-    }
-    userList += "\n";
-    std::string namesMsg = namesPrefix + userList;
-    send(client.GetClientSocket(), namesMsg.c_str(), namesMsg.size(), 0);
-
-    // Construir y enviar el mensaje RPL_ENDOFNAMES (366)
-    std::string endNamesMsg = ":" + serverName + " 366 " + nick + " " + channelName + " :End of /NAMES list\n";
-    send(client.GetClientSocket(), endNamesMsg.c_str(), endNamesMsg.size(), 0);
+    Server::updateUserList(channel);
 }
 
 void Server::broadcastToChannel(Channel &channel, const std::string &message, int clientSocket)
@@ -511,6 +496,37 @@ void Server::broadcastToChannel(Channel &channel, const std::string &message, in
     }
 }
 
+void Server::updateUserList(Channel &channel)
+{
+    std::vector<int> users = channel.GetUsers();
+    for (std::vector<int>::iterator it = users.begin(); it != users.end(); ++it) {
+        Client* user = GetThisClient(*it);
+        if (user) {
+            std::string nick = user->GetClientNick();
+            std::string channelName = channel.GetName();
+            std::string serverName = "ft_irc"; 
+
+            std::string namesPrefix = ":" + serverName + " 353 " + nick + " = " + channelName + " :";
+            std::string userList;
+            for (std::vector<int>::iterator it2 = users.begin(); it2 != users.end(); ++it2) {
+                Client* user2 = GetThisClient(*it2);
+                if (user2) {
+                    std::string userNick = user2->GetClientNick();
+                    if (channel.IsOperator(*it2)) {
+                        userNick = "@" + userNick;
+                    }
+                    userList += userNick + " ";
+                }
+            }
+            userList += "\n";
+            std::string namesMsg = namesPrefix + userList;
+            send(user->GetClientSocket(), namesMsg.c_str(), namesMsg.size(), 0);
+
+            std::string endNamesMsg = ":" + serverName + " 366 " + nick + " " + channelName + " :End of /NAMES list\n";
+            send(user->GetClientSocket(), endNamesMsg.c_str(), endNamesMsg.size(), 0);
+        }
+    }
+}
 
 Channel* Server::GetCurrentChannel(int clientSocket)
 {

@@ -755,18 +755,26 @@ void CommandHandler::processMode(Client &client, Server &server, const std::vect
             }
             //Agregar el usuario como operador al canal
             if (mode == "+o") {
-                channelObj->addOperator(destSocket);
+                channelObj->SetOperator(destSocket, true);
                 Msg = "User has been set as operator\n";
                 send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
                 Msg = "You are now an operator of channel " + channel + "\n";
                 send(destSocket, Msg.c_str(), Msg.size(), 0);
+                // Actualizar la lista de usuarios en el canal
+                server.updateUserList(*channelObj);
                 return;
-            } else {
-                channelObj->removeOperator(destSocket);
+            } else if (mode == "-o") {
+                channelObj->SetOperator(destSocket, false);
                 Msg = "User has been removed as operator\n";
                 send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
                 Msg = "You are no longer an operator of channel " + channel + "\n";
                 send(destSocket, Msg.c_str(), Msg.size(), 0);
+                // Actualizar la lista de usuarios en el canal
+                server.updateUserList(*channelObj);
+                return;
+            } else {
+                Msg = "ERROR: Invalid mode\n";
+                send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
                 return;
             }
         }   else if (mode == "+k"){

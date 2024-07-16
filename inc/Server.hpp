@@ -31,6 +31,7 @@ class Server{
         // Mensajes para el cliente hexchat
         void sendJoinMessages(Client &client, Channel &channel);
         void broadcastToChannel(Channel &channel, const std::string &message, int clientSocket);
+        void updateUserList(Channel &channel);
 
         // Metodo para verificar si un canal existe
         bool ChannelExists(std::string channelName);
