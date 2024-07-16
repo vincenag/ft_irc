@@ -760,7 +760,7 @@ void CommandHandler::processMode(Client &client, Server &server, const std::vect
                 send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
                 Msg = "You are now an operator of channel " + channel + "\n";
                 send(destSocket, Msg.c_str(), Msg.size(), 0);
-                // Actualizar la lista de usuarios en el canal
+                // Actualizar la lista de usuarios en el canal (353)
                 server.updateUserList(*channelObj);
                 return;
             } else if (mode == "-o") {
@@ -769,7 +769,7 @@ void CommandHandler::processMode(Client &client, Server &server, const std::vect
                 send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
                 Msg = "You are no longer an operator of channel " + channel + "\n";
                 send(destSocket, Msg.c_str(), Msg.size(), 0);
-                // Actualizar la lista de usuarios en el canal
+                // Actualizar la lista de usuarios en el canal (353)
                 server.updateUserList(*channelObj);
                 return;
             } else {
