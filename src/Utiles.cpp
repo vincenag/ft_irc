@@ -13,7 +13,7 @@ void Utiles::sendWelcomeMessage(Client& client) {
 }
 
 void Utiles::sendNumericReply(Client& client, int code, const std::string& message) {
-    std::string formattedMessage = Utiles::toString(code) + " " + message + "\r\n";
+    std::string formattedMessage = ":ft_irc " + Utiles::toString(code) + " " + client.GetClientNick() + " " + message + "\r\n";
     send(client.GetClientSocket(), formattedMessage.c_str(), formattedMessage.size(), 0);
 }
 

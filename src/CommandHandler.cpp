@@ -17,7 +17,7 @@ void CommandHandler::handleCommand(const std::string &commandLine, Server &serve
 
     // segun el comando entramos en la funcion
     // mandamos el cliente y el vector tokens con los argumentos
-    if (command == "PASS" && client.GetAuthenticated() == false){
+    if (command == "PASS"){
         processPass(client, server, tokens);
     } else if (command == "NICK" && client.GetAuthenticated() == true) {
         processNick(client, server, tokens);
@@ -35,7 +35,7 @@ void CommandHandler::handleCommand(const std::string &commandLine, Server &serve
             std::string Msg =  "ERROR: Command requires a channel\n" ;
             send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
         }
-    } else {
+    } else if (command != "CAP") {
         std::string msg =  "ERROR: Unknown command\n" ;
         send(client.GetClientSocket(), msg.c_str(), msg.size(), 0);
     }
@@ -56,44 +56,25 @@ std::vector<std::string> CommandHandler::splitCommand(const std::string &command
 
 void CommandHandler::processPass(Client &client, Server &server, const std::vector<std::string> &args)
 {
-    /* std::string Msg =  "ERROR: Invalid password, you have been disconected.\n" ;
-
-    std::string password = args[0];
-    if (server.GetPassword() == password) {
-        client.SetAuthenticated(true);
-        std::cout   << Server::getCurrentTime() 
-                    << GREEN << "[+] Client <" << client.GetClientSocket() << "> authenticated" << RESET << std::endl;
-        Msg =  "You have been authenticated. Use NICK command to continue\n" ;
-        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-    } else {
-        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-        std::cout   << Server::getCurrentTime() 
-                    << RED << "[-] Client <" << client.GetClientSocket() << "> failed to authenticate" << RESET << std::endl;
-        server.RemoveClient(client.GetClientSocket());
-        std::cout   << Server::getCurrentTime() 
-                    << BLUE << "Client <" << client.GetClientSocket() << "> removed" << RESET << std::endl;
-    } */
-
-   // corrigiendo funcion
-   std::string Msg = "ERROR: Invalid password, you have been disconnected.\n";
-
+    // ERR_NEEDMOREPARAMS (461)
     if (args.empty()) {
-        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+        Utiles::sendNumericReply(client, 461, "PASS :Not enough parameters");
         server.RemoveClient(client.GetClientSocket());
+        return;
+    }
+
+    // ERR_ALREADYREGISTERED (462)
+    if (client.GetAuthenticated()) {
+        Utiles::sendNumericReply(client, 462, ":You're already registered");
         return;
     }
 
     std::string password = args[0];
     if (server.GetPassword() == password) {
         client.SetAuthenticated(true);
-        std::cout << Server::getCurrentTime() 
-                  << GREEN << "[+] Client <" << client.GetClientSocket() << "> authenticated" << RESET << std::endl;
-        Msg = "You have been authenticated. Use NICK command to continue\n";
-        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
     } else {
-        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-        std::cout << Server::getCurrentTime() 
-                  << RED << "[-] Client <" << client.GetClientSocket() << "> failed to authenticate" << RESET << std::endl;
+        // ERR_PASSWDMISMATCH (464)
+        Utiles::sendNumericReply(client, 464, ":Password incorrect");
         server.RemoveClient(client.GetClientSocket());
     }
 }
