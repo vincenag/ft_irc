@@ -1,5 +1,0 @@
-
-*** reinciciar el servidor
-- no manda mensajes privados entre hexchat y new
-- no manda mensajes dentro del canal
-
