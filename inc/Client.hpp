@@ -6,10 +6,15 @@
 class Client 
 {
     public:
+
+        // *********** CONSTRUCTORS ***********
+
         Client();
         ~Client();
         Client(Client const &src);
         Client &operator=(Client const &src);
+
+        // *********** GETTERS ***********
 
         void SetClientSocket(int clientSocket);
         void SetClientIpAddr(std::string clientIpAddr);
@@ -23,13 +28,16 @@ class Client
         bool GetAuthenticated();
         void SetAuthenticated(bool Authenticated);
 
-        // Definir estado de autenticado de USER y NICK
+        // *********** NICK ***********
+
         void SetNickSet(bool value);
         void SetUserSet(bool value);
         bool getUser();
         bool getNick();
+        bool isValidNick(const std::string &nick);
 
-        // Metodos para USER
+        // *********** USER ***********
+
         void SetUsername(const std::string &username);
         void SetRealname(const std::string &realname);
         void SetHostname(const std::string &hostname);
@@ -42,10 +50,10 @@ class Client
         std::string GetHostname() const;
         std::string GetServername() const;
 
-        // ctrl + D
+        // *********** BUFFER CTRL + D ***********
         std::string &getBuffer();
 
-        // ctrl + Z
+        // *********** DISCONNECTED CTRL + Z ***********
         bool IsDisconnected() const;
         void SetDisconnected(bool state);
         std::queue<std::string> getCommandQueue();
@@ -58,23 +66,24 @@ class Client
         std::string clientNick;
         bool Authenticated;
 
-        // Definir estado de autenticado de USER y NICK
+        // *********** NICK ***********
         bool nickSet;
         bool userSet;
 
-        // atributos para USER
+        // *********** USER ***********
         std::string username;
         std::string realname;
         std::string hostname;
         std::string servername;
 
-        // ctrl + D 
+        // *********** BUFFER CTRL + D ***********
         std::string buffer;
 
-        // ctrl + Z
+        // *********** DISCONNECTED CTRL + Z ***********
         bool disconnected;
         std::queue<std::string> commandQueue;
         
+        // *********** REGISTERED ***********
         bool registered;
 };
 

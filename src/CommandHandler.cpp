@@ -2,21 +2,14 @@
 
 void CommandHandler::handleCommand(const std::string &commandLine, Server &server, Client &client)
 {
-    // hacemos un split del comando entero y lo guardamos en un vector
     std::vector<std::string> tokens = splitCommand(commandLine);
 
-
-    // verificamos si esta vacio o solo tiene espacios
     if (tokens.empty())
         return;
 
-    // extraemos el comando (primer elemento) y lo eliminamos
-    // dejamos solo los argumentos del comando en tokens
     std::string command = tokens[0];
     tokens.erase(tokens.begin());
 
-    // segun el comando entramos en la funcion
-    // mandamos el cliente y el vector tokens con los argumentos
     if (command == "PASS"){
         processPass(client, server, tokens);
     } else if (command == "NICK" && client.GetAuthenticated() == true) {
@@ -25,11 +18,11 @@ void CommandHandler::handleCommand(const std::string &commandLine, Server &serve
         processUser(client, server, tokens);
     } else if (command == "JOIN" && client.GetAuthenticated() == true) {
         processJoin(client, server, tokens);
-    } else if (command == "PRIVMSG" && client.GetAuthenticated() == true && client.GetClientNick() != ""){
+    } else if (command == "PRIVMSG" && client.GetAuthenticated() == true && client.GetClientNick() != "") {
         processPrivmsg(client, server, tokens);
-    } else if ((command == "KICK" || command == "INVITE" || command == "TOPIC" || command == "MODE") && client.GetAuthenticated() == true && client.GetClientNick() != ""){
+    } else if ((command == "KICK" || command == "INVITE" || command == "TOPIC" || command == "MODE") 
+                && client.GetAuthenticated() == true && client.GetClientNick() != ""){
         if (!tokens.empty()) {
-            //std::string channelName = tokens[0];
             handleOperatorCommand(client, server, command, tokens);
         } else {
             std::string Msg =  "ERROR: Command requires a channel\n" ;
@@ -81,97 +74,48 @@ void CommandHandler::processPass(Client &client, Server &server, const std::vect
 
 void CommandHandler::processNick(Client &client, Server &server, const std::vector<std::string> &args)
 {
-    /* std::string Msg;
-
-    if (args.size() < 1 || args[0] == "") {
-        Msg =  "ERROR: NICK command requires a Nickname: "  "NICK <nickname>\n";
-        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-        return;
-    }
-    std::string nick = args[0];
-
-    // Si el cliente ya tiene este nick, enviamos un mensaje de error
-    if (client.GetClientNick() == nick) {
-        Msg =  "ERROR: Nickname already set\n";
-        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-        return;
-    }
-
-    // Comprobar si el nick ya está en uso en el server
-    for (size_t i = 0; i < server.GetClients().size(); i++) {
-        if (server.GetClients()[i].GetClientNick() == nick && server.GetClients()[i].GetClientSocket() != client.GetClientSocket()){
-            Msg =  "ERROR: Nickname already in use\n";
-            send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-            return;
-        }
-    }
-
-    // Si el nick es válido, lo establecemos
-    client.SetClientNick(nick);
-    client.SetNickSet(true); // Indicamos que el nick ha sido establecido
-    std::cout   << Server::getCurrentTime() 
-                << GREEN << "[+] Client <" << client.GetClientSocket() << "> set nickname to " 
-                << MAGENTA << nick << RESET << std::endl;
-    if (client.getUser() == false || client.getNick() == false) {
-        Msg =  "Your Nickname has been set. Use USER command to continue\n";
-        std::cout << "Nickset: " << client.getNick() << std::endl;
-        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-    } else {
-        Msg = "Your Nickname has been set successfully.\n";
-        std::cout << "Nickset: " << client.getNick() << std::endl;
-        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-    } */
-
     std::string Msg;
-    std::string serverName = "ft_irc"; // Cambia esto por el nombre de tu servidor
+    std::string serverName = "ft_irc";
     std::string nick = args.size() > 0 ? args[0] : "";
 
-    // Comprobar si se ha proporcionado un nick
+    // ERR_NONICKNAMEGIVEN (431)
     if (nick.empty()) {
-        Msg = ":" + serverName + " 431 * :No nickname given\n"; // ERR_NONICKNAMEGIVEN
-        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+        Utiles::sendNumericReply(client, 431, ":No nickname given"); 
         return;
     }
 
-    // Si el cliente ya tiene este nick, enviamos un mensaje de error
+    // ERR_NICKNAMEINUSE (433) 
     if (client.GetClientNick() == nick) {
-        Msg = ":" + serverName + " 433 " + nick + " :Nickname is already in use\n"; // ERR_NICKNAMEINUSE
-        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+        Utiles::sendNumericReply(client, 433, nick + " :Nickname is already in use");
         return;
     }
 
-    // Comprobar si el nick ya está en uso en el servidor
+    // ERR_NICKNAMEINUSE (433)
     for (size_t i = 0; i < server.GetClients().size(); i++) {
         if (server.GetClients()[i].GetClientNick() == nick && server.GetClients()[i].GetClientSocket() != client.GetClientSocket()) {
-            Msg = ":" + serverName + " 433 " + nick + " :Nickname is already in use\n"; // ERR_NICKNAMEINUSE
-            send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+            Utiles::sendNumericReply(client, 433, nick + " :Nickname is already in use"); 
             return;
         }
     }
 
-    // Si el nick es válido, lo establecemos
+    // ERR_ERRONEUSNICKNAME (432)
+    if (!client.isValidNick(nick)) {
+        Utiles::sendNumericReply(client, 432, nick + " :Erroneous nickname");
+        return;
+    }
+
+    // Establecer el nick del cliente
     client.SetClientNick(nick);
-    client.SetNickSet(true); // Indicamos que el nick ha sido establecido
+    client.SetNickSet(true);
     std::cout << Server::getCurrentTime() 
               << GREEN << "[+] Client <" << client.GetClientSocket() << "> set nickname to " 
               << MAGENTA << nick << RESET << std::endl;
 
-    // Verificar si el usuario ya ha proporcionado USER y NICK
+    // Enviar mensajes de bienvenida y MOTD
     if (client.getUser()) {
-        // Mensajes de bienvenida
-        Msg = ":" + serverName + " 001 " + nick + " :Welcome to the IRC network, " + nick + "\n";
-        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-
-        Msg = ":" + serverName + " 002 " + nick + " :Your host is " + serverName + ", running version 1.0\n";
-        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-
-        Msg = ":" + serverName + " 003 " + nick + " :This server was created today\n";
-        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-
-        Msg = ":" + serverName + " 004 " + nick + " " + serverName + " 1.0 o o\n";
-        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+        Utiles::sendWelcomeMessage(client);
     } else {
-        // Mensaje para completar el comando USER
+        // Mensaje para completar el comando USER 
         Msg = "Your Nickname has been set. Use USER command to continue\n";
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
     }
@@ -179,30 +123,6 @@ void CommandHandler::processNick(Client &client, Server &server, const std::vect
 
 void CommandHandler::processUser(Client &client, Server &/*server*/, const std::vector<std::string> &args)
 {
-    /* std::string Msg;
-
-    if (args.size() < 4) {
-        Msg = "ERROR: USER command requires 4 arguments:\n" "USER <username> <hostname> <servername> <realname>\n";
-        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-        return;
-    }
-
-    // Actualizar la información del cliente
-    client.SetUsername(args[0]);
-    client.SetHostname(args[1]);
-    client.SetServername(args[2]);
-    client.SetRealname(args[3]);
-
-    // Enviar confirmación al cliente
-    client.SetUserSet(true);
-    if (client.getUser() == false || client.getNick() == false) {
-        Msg = "Your User information has been set. Use NICK command to continue\n";
-        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-        return;
-    }
-    Msg = "Your User information has been set successfully.\n";
-    send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0); */
-
     if (client.IsRegistered()) {
         // 462 es el código de error para "Ya estás registrado"
         Utiles::sendNumericReply(client, 462, "You're already registered");
@@ -309,17 +229,6 @@ void CommandHandler::processJoin(Client &client, Server &server, const std::vect
         userList += user.GetClientNick() + " ";
     }
     userList += "\n";
-
-    /**
-     * ! Este codigo se estaba repitiendo dos veces al creal el canal, ya esta en server
-     */
-    /* // Enviar la lista de usuarios en el canal
-    Msg = ":ft_irc 353 " + client.GetClientNick() + " " + userList;
-    send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-
-    // Enviar mensaje de fin de lista
-    Msg = ":ft_irc 366 " + client.GetClientNick() + " " + channel + "\n";
-    send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0); */
 }
 
 void CommandHandler::processPrivmsg(Client &client, Server &server, const std::vector<std::string> &args)
@@ -580,6 +489,7 @@ void CommandHandler::processInvite(Client &client, Server &server, const std::ve
     }
 
     // Enviar la invitación
+    channelObj->inviteUser(destSocket);
     std::string inviteMsg = ":" + client.GetClientNick() + " INVITE " + nick + " :" + channel + "\r\n";    send(destSocket, inviteMsg.c_str(), inviteMsg.size(), 0);
     Utiles::sendNumericReply(client, 341, nick + " " + channel);
 }
@@ -660,14 +570,13 @@ void CommandHandler::processTopic(Client &client, Server &server, const std::vec
         if (currentTopic.empty()) {
             Utiles::sendNumericReply(client, 331, channelName + " :No topic is set");
         } else {
-            Utiles::sendNumericReply(client, 332, client.GetClientNick() + " " + channelName + " :" + currentTopic);
+            Utiles::sendNumericReply(client, 332, channelName + currentTopic);
         }
     } else {
         // Verificar si el canal tiene el modo +t activado
-        bool isTopicRestricted = channel->isModeSet('t');
         bool isOperator = channel->IsOperator(client.GetClientSocket());
 
-        if (isTopicRestricted && !isOperator) {
+        if (channel->isTopicblock() && !isOperator) {
             // Si el modo +t está activado y el cliente no es operador, enviar error
             Utiles::sendNumericReply(client, 482, channelName + " :You're not channel operator");
             return;
@@ -677,10 +586,10 @@ void CommandHandler::processTopic(Client &client, Server &server, const std::vec
         std::string newTopic;
         for (size_t i = 1; i < args.size(); ++i) {
             if (i > 1) newTopic += " ";
-            newTopic += args[i];
+            newTopic += args[i] == ":" ? "" : args[i];
         }
 
-        channel->SetTopic(newTopic);
+        channel->setTopic(newTopic);
         std::string msg = ":" + client.GetClientNick() + " TOPIC " + channelName + " :" + newTopic + "\r\n";
         channel->BroadcastMessage(msg, server);
     }
@@ -688,7 +597,7 @@ void CommandHandler::processTopic(Client &client, Server &server, const std::vec
 
 void CommandHandler::processMode(Client &client, Server &server, const std::vector<std::string> &args)
 {
-    // Codigo normal sin protocolo, pero actualiza la lista de usuarios en el canal
+    /* // Codigo normal sin protocolo, pero actualiza la lista de usuarios en el canal
     // cuando el operador cambia el modo de +o o -o
     std::string Msg;
     if (args.size() < 2) {
@@ -811,7 +720,7 @@ void CommandHandler::processMode(Client &client, Server &server, const std::vect
         Msg = "ERROR: Invalid mode\n";
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
         return;
-    }
+    } */
 
     /* // Codigo con el protocolo, falta revisar bien, hace cosas raras
     std::string Msg;
@@ -922,6 +831,97 @@ void CommandHandler::processMode(Client &client, Server &server, const std::vect
         Msg = ":server 472 " + client.GetClientNick() + " " + mode + " :is unknown mode char to me\n";
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
     } */
+
+   std::string Msg;
+    //RPL_UMODEIS (324) - Modestring not given
+    if (args.size() < 2) {
+        Utiles::sendNumericReply(client, 324, "modestring not given");
+        return;
+    }
+
+    std::string channel = args[0];
+    Channel* channelObj = server.GetThisChannel(channel);
+    //ERR_NOSUCHCHANNEL (403) - Channel does not exist
+    if (!channelObj) {
+        Utiles::sendNumericReply(client, 403, "Channel does not exist");
+        return;
+    }
+
+    size_t i = 1;
+    bool adding = true;
+    while (i < args.size()) {
+        std::string mode = args[i];
+        if (mode[0] == '+' || mode[0] == '-') {
+            adding = (mode[0] == '+');
+            for (size_t j = 1; j < mode.size(); ++j) {
+                char flag = mode[j];
+                switch (flag) {
+                    case 'i':
+                        channelObj->setInviteOnly(adding);
+                        Msg = adding ?  "Invite only mode has been set\n"  :  "Invite only mode has been removed\n" ;
+                        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+                        break;
+                    case 't':
+                        channelObj->setTopicblock(adding);
+                        Msg = adding ?  "Topic block mode has been set\n"  :  "Topic block mode has been removed\n" ;
+                        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+                        break;
+                    case 'o':
+                        if (i + 1 < args.size()) {
+                            std::string nick = args[++i];
+                            int destSocket = server.GetSocketByNick(nick);
+                            if (channelObj->UserExists(destSocket)) {
+                                if (adding) {
+                                    channelObj->addOperator(destSocket);
+                                    server.updateUserList(*channelObj);
+                                    Msg = "User has been set as operator\n";
+                                } else {
+                                    channelObj->removeOperator(destSocket);
+                                    server.updateUserList(*channelObj);
+                                    Msg =  "User has been removed as operator\n" ;
+                                }
+                                send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+                                Msg = adding ?  "You are now an operator of channel " + channel + "\n"  :  "You are no longer an operator of channel " + channel + "\n" ;
+                                send(destSocket, Msg.c_str(), Msg.size(), 0);
+                            } 
+                        } 
+                        break;
+                    case 'k':
+                        if (adding) {
+                            if (i + 1 < args.size()) {
+                                std::string password = args[++i];
+                                channelObj->setPassword(password);
+                                Msg =  "Password has been set\n";
+                            }
+                        } else {
+                            channelObj->setPassword("");
+                            Msg =  "Password has been removed\n";
+                        }
+                        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+                        break;
+                    case 'l':
+                        if (adding) {
+                            if (i + 1 < args.size()) {
+                                unsigned int limit;
+                                std::stringstream ss(args[++i]);
+                                if ((ss >> limit) && ss.eof()) {
+                                    channelObj->setLimitUsers(limit);
+                                    channelObj->setLimitUsersEnabled(true);
+                                    Msg =  "User limit has been set\n";
+                                }
+                            } 
+                        } else {
+                            channelObj->setLimitUsers(0);
+                            channelObj->setLimitUsersEnabled(false);
+                            Msg =  "User limit has been removed\n";
+                        }
+                        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+                        break;
+                }
+            }
+        } 
+        ++i;
+    }
 }
 
 // Funciones auxiliares
@@ -989,16 +989,6 @@ void CommandHandler::sendToClient(Server &server, const std::string &clientNick,
     }
     std::string Msg = "ERROR: User does not exist\n";
     send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-}
-
-bool CommandHandler::isNumber(const std::string& s)
-{
-    for (size_t i = 0; i < s.length(); ++i) {
-        if (!isdigit(s[i])) {
-            return false;
-        }
-    }
-    return true;
 }
 
 bool CommandHandler::handleOperatorCommand(Client &client, Server &server, 

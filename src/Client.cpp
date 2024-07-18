@@ -1,5 +1,11 @@
 #include "Client.hpp"
 
+// ############################################################
+// #                                                          #
+// #                     CONSTRUCTORS                         #
+// #                                                          #
+// ############################################################
+
 Client::Client():   clientSocket(0), clientIpAddr(""), clientNick(""), Authenticated(false), 
                     nickSet(false), userSet(false), username(""), realname(""), 
                     hostname(""), servername(""), buffer(""), disconnected(false), 
@@ -30,6 +36,12 @@ Client &Client::operator=(Client const &src)
     }
     return *this;
 }
+
+// ############################################################
+// #                                                          #
+// #                         GETTERS                          #
+// #                                                          #
+// ############################################################
 
 void Client::SetClientSocket(int clientSocket)
 {
@@ -70,7 +82,11 @@ void Client::SetAuthenticated(bool Authenticated)
 {
     this->Authenticated = Authenticated;
 }
-// Definir estado de autenticado de USER y NICK
+// ############################################################
+// #                                                          #
+// #                         NICK                             #
+// #                                                          #
+// ############################################################
 
 void Client::SetNickSet(bool value)
 {
@@ -91,7 +107,23 @@ bool Client::getNick()
     return this->nickSet;
 }
 
-// Metodos para USER
+bool Client::isValidNick(const std::string &nick)
+{
+    if (nick.length() > 9)
+        return false;
+    for (size_t i = 0; i < nick.length(); i++)
+    {
+        if (!std::isalnum(nick[i]) && nick[i] != '_')
+            return false;
+    }
+    return true;
+}
+
+// ############################################################
+// #                                                          #
+// #                         USER                             #
+// #                                                          #
+// ############################################################
 
 void Client::SetUsername(const std::string &username)
 {
@@ -123,9 +155,6 @@ void Client::SetRegistered(bool value)
     this->registered = value;
 }
 
-
-// ctrl + D
-
 std::string Client::GetUsername() const
 {
     return this->username;
@@ -147,14 +176,22 @@ std::string Client::GetServername() const
 }
 
 
-// ctrl + D
+// ############################################################
+// #                                                          #
+// #                         BUFFER CTRL + D                  #
+// #                                                          #
+// ############################################################
 
 std::string &Client::getBuffer()
 {
     return this->buffer;
 }
 
-// ctrl + Z
+// ############################################################
+// #                                                          #
+// #                         DISCONNECTED CTRL + Z            #
+// #                                                          #
+// ############################################################
 
 bool Client::IsDisconnected() const
 {

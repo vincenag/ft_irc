@@ -28,8 +28,6 @@ class CommandHandler
         std::vector<std::string> splitCommand(const std::string &commandLine);
         void sendToChannel(Server &server, const std::string &channelName, const std::string &msg, Client &client);
         void sendToClient(Server &server, const std::string &clientNick, const std::string &msg, Client &client);
-
-        bool isNumber(const std::string &s);
         
         // metodo para manejar los comandos de operador
         bool handleOperatorCommand(Client &client, Server &server, const std::string &command, 

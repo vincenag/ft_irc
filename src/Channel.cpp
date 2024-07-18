@@ -178,11 +178,20 @@ void Channel::BroadcastMessage(const std::string &message, Server &server)
         if (client != nullptr)
         {
             std::ostringstream ss;
-            ss << ":" << client->GetClientSocket() << " PRIVMSG " << this->name << " :" << message << "\r\n";
+            if (isTopicChanged(message)) {
+                ss << message;
+            } else {
+                ss << ":" << client->GetClientSocket() << " PRIVMSG " << this->name << " :" << message << "\r\n";
+            }
             std::string msg = ss.str();
             send(clientSocket, msg.c_str(), msg.size(), 0);
         }
     }
+}
+
+bool Channel::isTopicChanged(const std::string &topic) const
+{
+    return this->topic != topic;
 }
 
 // --------- TOPIC -------------
@@ -197,24 +206,19 @@ void Channel::setTopicblock(bool value)
     this->Topicblock = value;
 }
 
-void Channel::setTopic(std::string topic)
-{
-    this->topic = topic;
-}
-
 const std::string &Channel::getTopic() const
 {
     return this->topic;
 }
 
-void Channel::SetTopic(const std::string &newTopic)
+void Channel::setTopic(const std::string &newTopic)
 {
     this->topic = newTopic;
 }
 
 // --------- MODOS DEL CANAL -------------
 
-bool Channel::isModeSet(char mode) const
+/* bool Channel::isModeSet(char mode) const
 {
     return this->modes.find(mode) != this->modes.end();
 }
@@ -227,7 +231,7 @@ void Channel::setMode(char mode)
 void Channel::unsetMode(char mode)
 {
     this->modes.erase(mode);
-}
+} */
 
 // --------- PASSWORD -------------
 

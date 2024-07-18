@@ -44,14 +44,10 @@ class Channel
         // bloqueo de topicos
         bool isTopicblock() const;
         void setTopicblock(bool value);
-        void setTopic(std::string topic);
+        void setTopic(const std::string &topic);
         const std::string &getTopic() const;
-        void SetTopic(const std::string &newTopic);
+        bool isTopicChanged(const std::string &topic) const;
 
-        // Modos del canal
-        bool isModeSet(char mode) const;
-        void setMode(char mode);
-        void unsetMode(char mode);
 
         void setPassword(std::string password);
         std::string getPassword() const;
