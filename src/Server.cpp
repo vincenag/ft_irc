@@ -252,11 +252,15 @@ void Server::getClientdata(int clientSocket)
             // Procesar los comandos completos en el buffer
             size_t pos;
             while ((pos = client->getBuffer().find('\n')) != std::string::npos) {
+                
+
                 std::string command = client->getBuffer().substr(0, pos);
                 client->getBuffer().erase(0, pos + 1);
 
+
                 // Crear una instancia de CommandHandler y manejar el comando
                 CommandHandler cmdHandler;
+                std::cout << "Command: " << command << std::endl;
                 cmdHandler.handleCommand(command, *this, *client);
             }
         }
@@ -282,6 +286,13 @@ void Server::RemoveClient(int clientSocket)
         }
     }
     close(clientSocket);
+
+    // Eliminar al cliente de todos los canales
+    for (size_t i = 0; i < this->channels.size(); i++)
+    {
+        this->channels[i].RemoveUser(clientSocket);
+        this->updateUserList(this->channels[i]);
+    }
 
 }
 
@@ -422,16 +433,6 @@ void Server::updateUserList(Channel &channel)
     }
 }
 
-Channel* Server::GetCurrentChannel(int clientSocket)
-{
-    for (size_t i = 0; i < this->channels.size(); i++)
-    {
-        if (this->channels[i].UserExists(clientSocket))
-            return &this->channels[i];
-    }
-    return nullptr;
-}
-
 Client* Server::GetThisClient(int clientSocket)
 {
     for (size_t i = 0; i < this->clients.size(); i++)
@@ -553,6 +554,8 @@ void Server::handleClientReconnection(int clientSocket) {
                 CommandHandler cmdHandler;
                 cmdHandler.handleCommand(command, *this, *it);
             }
+
+            it->clearBuffer();
             break;
         }
     }

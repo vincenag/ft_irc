@@ -28,7 +28,7 @@ void CommandHandler::handleCommand(const std::string &commandLine, Server &serve
             std::string Msg =  "ERROR: Command requires a channel\n" ;
             send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
         }
-    } else if (command != "CAP") {
+    } else if (command != "CAP" && command != "WHO")  {
         std::string msg =  "ERROR: Unknown command\n" ;
         send(client.GetClientSocket(), msg.c_str(), msg.size(), 0);
     }
@@ -158,17 +158,17 @@ void CommandHandler::processUser(Client &client, Server &/*server*/, const std::
 
 void CommandHandler::processJoin(Client &client, Server &server, const std::vector<std::string> &args)
 {
-    // Verificar se se proporcionó el nombre del canal
     std::string Msg;
-    if (args.size() < 1){
-        Msg = "ERROR: JOIN requires a channel: JOIN <#channel>\n";
+    // Comprobar que USER y NICK fueron creados
+    if (client.getUser() == false || client.getNick() == false) {
+        Msg = "ERROR: You must set NICK and USER before joining a channel\n";
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
         return;
     }
 
-    // Comprobar que USER y NICK fueron creados
-    if (client.getUser() == false || client.getNick() == false) {
-        Msg = "ERROR: You must set NICK and USER before joining a channel\n";
+    // Verificar se se proporcionó el nombre del canal
+    if (args.size() < 1){
+        Msg = "ERROR: JOIN requires a channel: JOIN <#channel>\n";
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
         return;
     }
@@ -242,8 +242,7 @@ void CommandHandler::processKick(Client &client, Server &server, const std::vect
     // Expulsar al usuario del canal
     if (args.size() < 2) {
     // ERR_NEEDMOREPARAMS (461)
-    std::string errorMsg = ":ft_irc 461 " + client.GetClientNick() + " KICK :Not enough parameters\n";
-    send(client.GetClientSocket(), errorMsg.c_str(), errorMsg.size(), 0);
+    //Utiles::sendNumericReply(client, 461, "KICK :Not enough parameters");
     return;
     }
 
@@ -393,7 +392,9 @@ void CommandHandler::processMode(Client &client, Server &server, const std::vect
    std::string Msg;
     //RPL_UMODEIS (324) - Modestring not given
     if (args.size() < 2) {
-        Utiles::sendNumericReply(client, 324, "modestring not given");
+        Msg = "ERROR: modestring not given";
+        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+        //Utiles::sendNumericReply(client, 324, "modestring not given");
         return;
     }
 

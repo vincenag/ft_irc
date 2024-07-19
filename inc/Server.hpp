@@ -35,7 +35,6 @@ class Server{
 
         // Metodo para verificar si un canal existe
         bool ChannelExists(std::string channelName);
-        Channel* GetCurrentChannel(int clientSocket);
 
         // Metodo para obtener un cliente basado en su socket
         Client* GetThisClient(int clientSocket);

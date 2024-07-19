@@ -207,3 +207,7 @@ std::queue<std::string> Client::getCommandQueue()
 {
     return this->commandQueue;
 }
+
+void Client::clearBuffer() {
+    this->buffer.clear();
+}

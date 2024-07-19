@@ -53,6 +53,8 @@ class Client
         // *********** BUFFER CTRL + D ***********
         std::string &getBuffer();
 
+        void clearBuffer();
+
         // *********** DISCONNECTED CTRL + Z ***********
         bool IsDisconnected() const;
         void SetDisconnected(bool state);
