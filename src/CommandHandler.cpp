@@ -175,6 +175,7 @@ void CommandHandler::processJoin(Client &client, Server &server, const std::vect
 
     // Verficar que el nombre del canal comience con #
     std::string channel = args[0];
+    printf("Channel: %s\n", channel.c_str());
     if (channel[0] != '#') {
         Msg = "ERROR: Channel name must start with '#': JOIN <#channel>\n";
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
@@ -183,7 +184,7 @@ void CommandHandler::processJoin(Client &client, Server &server, const std::vect
 
     // LLamar al servidor para añadir el cliente al canal
     server.JoinChannel(client, channel, args);
-
+    
     // Enviar la lista de usuarios en el canal
     Channel* channelObj = server.GetThisChannel(channel);
     std::vector<int> users = channelObj->GetUsers();
@@ -450,10 +451,12 @@ void CommandHandler::processMode(Client &client, Server &server, const std::vect
                             if (i + 1 < args.size()) {
                                 std::string password = args[++i];
                                 channelObj->setPassword(password);
+                                channelObj->setModeKEnabled(true);
                                 Msg =  "Password has been set\n";
                             }
                         } else {
                             channelObj->setPassword("");
+                            channelObj->setModeKEnabled(false);
                             Msg =  "Password has been removed\n";
                         }
                         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);

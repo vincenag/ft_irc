@@ -48,6 +48,10 @@ class Channel
         const std::string &getTopic() const;
         bool isTopicChanged(const std::string &topic) const;
 
+        // Modos del canal
+        // +k: clave
+        bool isModeKEnabled() const;
+        void setModeKEnabled(bool value);
 
         void setPassword(std::string password);
         std::string getPassword() const;
@@ -71,8 +75,12 @@ class Channel
         std::string topic;
         bool Topicblock;
 
+        // Modo +l
         unsigned int limitUsers;
         bool limitUsersEnabled;
+
+        // Modo +k
+        bool modeK;
 };
 
 #endif
