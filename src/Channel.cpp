@@ -11,6 +11,7 @@ Channel::Channel()
     this->password = "";
     this->limitUsers = 0;
     this->limitUsersEnabled = false;
+    this->modeK = false;
 }
 
 Channel::~Channel(){}
@@ -27,6 +28,7 @@ Channel::Channel(Channel const &src)
     this->password = src.password;
     this->limitUsers = src.limitUsers;
     this->limitUsersEnabled = src.limitUsersEnabled;
+    this->modeK = src.modeK;
 }
 
 Channel &Channel::operator=(Channel const &src)
@@ -43,6 +45,7 @@ Channel &Channel::operator=(Channel const &src)
         this->password = src.password;
         this->limitUsers = src.limitUsers;
         this->limitUsersEnabled = src.limitUsersEnabled;
+        this->modeK = src.modeK;
     }
     return *this;
 }
@@ -58,6 +61,7 @@ Channel::Channel(std::string name)
     this->password = "";
     this->limitUsers = 0;
     this->limitUsersEnabled = false;
+    this->modeK = false;
 }
 
 void Channel::SetName(std::string name)
@@ -238,6 +242,8 @@ unsigned int Channel::getLimitUsers() const
     return this->limitUsers;
 }
 
+// --------- MODOS DEL CANAL -------------
+
 bool Channel::isLimitUsersEnabled() const
 {
     return this->limitUsersEnabled;
@@ -246,4 +252,14 @@ bool Channel::isLimitUsersEnabled() const
 void Channel::setLimitUsersEnabled(bool value)
 {
     this->limitUsersEnabled = value;
+}
+
+bool Channel::isModeKEnabled() const
+{
+    return this->modeK;
+}
+
+void Channel::setModeKEnabled(bool value)
+{
+    this->modeK = value;
 }

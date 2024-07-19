@@ -293,10 +293,12 @@ void Server::JoinChannel(Client &client, std::string channelName, const std::vec
 
         // Comprobar si el canal requiere contraseña
         Channel* channel = GetThisChannel(channelName);
-        if (channel->getPassword() != "" && args.size() > 1 && args[1] != channel->getPassword()) {
-            std::string Msg = "ERROR: Invalid password\n";
-            send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-            return;
+        if (channel->isModeKEnabled()) {
+            if (args.size() < 1 || args[1] != channel->getPassword()) {
+                std::string Msg = "ERROR: Invalid password\n";
+                send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+                return;
+            }
         }
 
         // Comprobar si el canal es solo por invitación y si el cliente está invitado
