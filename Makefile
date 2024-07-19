@@ -15,6 +15,7 @@ SRCS := main.cpp\
 		$(SRC_DIR)/Channel.cpp\
 		$(SRC_DIR)/CommandHandler.cpp\
 		$(SRC_DIR)/Utiles.cpp\
+		$(SRC_DIR)/IRCBot.cpp\
 
 OBJS := $(patsubst %.cpp,$(OBJ_DIR)/%.o,$(notdir $(SRCS)))
 
