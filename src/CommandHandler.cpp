@@ -527,3 +527,50 @@ bool CommandHandler::handleOperatorCommand(Client &client, Server &server,
                 << GREEN << "[+] Client <" << client.GetClientSocket() << "> executed operator command: " << MAGENTA << command << RESET << std::endl;
     return true;
 }
+
+// ********************************************
+// *            BONUS PART: DCC SEND          *
+// ********************************************
+
+void CommandHandler::processDCCSend(Client &client, const std::vector<std::string> &args)
+{
+    if (args.size() < 4) {
+        Utiles::sendNumericReply(client, 461, "DCC SEND :Not enough parameters");
+        return;
+    }
+
+    std::string filename = args[1];
+    std::string ip = args[2];
+
+    // Convertir cadena a entero
+    std::istringstream iss(args[3]);
+    int port;
+    if (!(iss >> port)) {
+        Utiles::sendNumericReply(client, 461, "DCC SEND :Invalid port number");
+        return;
+    }
+
+    // Convertir entero a cadena
+    std::ostringstream oss;
+    oss << port;
+    std::string portStr = oss.str();
+
+    // Enviar solicitud de transferencia de archivos al cliente destinatario
+    std::string dccRequest = "DCC SEND " + filename + " " + ip + " " + portStr;
+    send(client.GetClientSocket(), dccRequest.c_str(), dccRequest.size(), 0);
+
+    std::cout << Server::getCurrentTime() 
+              << GREEN << "[+] Client <" << client.GetClientSocket() << "> sent DCC SEND request for file " 
+              << MAGENTA << filename << RESET << std::endl;
+}
+
+
+
+
+
+
+
+
+
+
+

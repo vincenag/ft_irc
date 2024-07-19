@@ -10,7 +10,7 @@ class CommandHandler
 {
     public:
         void handleCommand(const std::string &commandLine, Server &server, Client &client);
-    
+        void processDCCSend(Client &client, const std::vector<std::string> &args);
     private:
         // Comandos
         void processPass(Client &client, Server &server, const std::vector<std::string> &args);
