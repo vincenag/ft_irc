@@ -22,7 +22,7 @@ class CommandHandler
         void processInvite(Client &client, Server &server, const std::vector<std::string> &args);
         void processTopic(Client &client, Server &server, const std::vector<std::string> &args);
         void processMode(Client &client, Server &server, const std::vector<std::string> &args);
-
+        void ListChannels(Client &client, Server &server);
 
         // Funciones auxiliares
         std::vector<std::string> splitCommand(const std::string &commandLine);

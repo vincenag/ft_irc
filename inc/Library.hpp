@@ -42,5 +42,6 @@
 #include "Channel.hpp"
 #include "CommandHandler.hpp"
 #include "Utiles.hpp"
+#include "IRCBot.hpp"
 
 #endif

@@ -4,6 +4,7 @@
 #include "Library.hpp"
 class Client;
 class Channel;
+class IRCBot;
 
 class Server{
     public:
@@ -47,6 +48,9 @@ class Server{
 
         //Miembro para el ctrl + C
         void shutdownServer();
+
+        // Miembro para obtener lista de canales
+        std::vector<Channel> GetAllChannels() const;
 
     private:
         std::string password;

@@ -29,7 +29,6 @@ int main(int argc, char *argv[])
         signal(SIGINT, Server::signalHandler);
 
         server.serverInit(port, password);
-
     }
     catch(const std::exception &e){
         std::cerr << "Error: " << e.what() << std::endl;

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   IRCBot.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rdelicad <rdelicad@student.42.fr>          +#+  +:+       +#+        */
+/*   By: lxuxer <lxuxer@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/19 17:59:26 by rdelicad          #+#    #+#             */
-/*   Updated: 2024/07/19 18:28:43 by rdelicad         ###   ########.fr       */
+/*   Updated: 2024/07/20 00:16:59 by lxuxer           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,10 @@ IRCBot::IRCBot(const std::string &server, int port, const std::string &channel, 
 void IRCBot::connectToServer() 
 {
     _socket = socket(AF_INET, SOCK_STREAM, 0);
+    if (_socket < 0) {
+        std::cerr << "Socket creation failed" << std::endl;
+        exit(1);
+    }
     struct sockaddr_in serv_addr;
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(_port);
@@ -39,7 +43,9 @@ void IRCBot::connectToServer()
     sendCommand("NICK " + _nick);
 
     // Enviar comando USER
-    sendCommand("USER " + _user + " 0 * :" + _user);
+    sendCommand("USER " + _user);
+
+    joinChannel();
 }
 
 void IRCBot::authenticate() 
@@ -56,7 +62,7 @@ void IRCBot::authenticate()
 }
 
 void IRCBot::joinChannel() {
-    sendCommand("JOIN " + _channel);
+    sendCommand("JOIN " + _channel + "\r\n");
     std::cout << "Joined channel: " << _channel << std::endl;
 }
 
@@ -75,4 +81,11 @@ void IRCBot::sendCommand(const std::string& command) {
     std::string cmd = command + "\r\n";
     send(_socket, cmd.c_str(), cmd.size(), 0);
     std::cout << "Sent command: " << command << std::endl;
+}
+
+void IRCBot::start() 
+{
+    while (true) {
+        authenticate();
+    }
 }

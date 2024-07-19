@@ -28,9 +28,13 @@ void CommandHandler::handleCommand(const std::string &commandLine, Server &serve
             std::string Msg =  "ERROR: Command requires a channel\n" ;
             send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
         }
+    } else if (command == "LIST" && client.GetAuthenticated() == true) {
+        ListChannels(client, server); // Corrected to pass the server instance
     } else if (command != "CAP" && command != "WHO")  {
         std::string msg =  "ERROR: Unknown command\n" ;
         send(client.GetClientSocket(), msg.c_str(), msg.size(), 0);
+    } else if (command == "DCC" && tokens[0] == "SEND") {
+        processDCCSend(client, tokens);
     }
 }
 
@@ -564,13 +568,13 @@ void CommandHandler::processDCCSend(Client &client, const std::vector<std::strin
               << MAGENTA << filename << RESET << std::endl;
 }
 
-
-
-
-
-
-
-
-
-
-
+void CommandHandler::ListChannels(Client &client, Server &server) {
+    std::string Msg;
+    std::string channelList = "Channel list: ";
+    std::vector<Channel> channels = server.GetAllChannels();
+    for (size_t i = 0; i < channels.size(); i++) {
+        channelList += channels[i].GetName() + " ";
+    }
+    channelList += "\n";
+    send(client.GetClientSocket(), channelList.c_str(), channelList.size(), 0);
+}
