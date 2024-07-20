@@ -6,7 +6,7 @@
 /*   By: lxuxer <lxuxer@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/19 17:59:26 by rdelicad          #+#    #+#             */
-/*   Updated: 2024/07/20 00:16:59 by lxuxer           ###   ########.fr       */
+/*   Updated: 2024/07/20 13:18:38 by lxuxer           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,9 @@
 IRCBot::IRCBot(const std::string &server, int port, const std::string &channel, const std::string &nick, const std::string &user, const std::string &password)
     : _server(server), _port(port), _channel(channel), _nick(nick), _user(user), _password(password)
 {
-    connectToServer(); // Llamar a connectToServer en el constructor
+    connectToServer();
+    joinChannel();
+    //sendMessagesOfDay();
 }
 
 void IRCBot::connectToServer() 
@@ -44,21 +46,6 @@ void IRCBot::connectToServer()
 
     // Enviar comando USER
     sendCommand("USER " + _user);
-
-    joinChannel();
-}
-
-void IRCBot::authenticate() 
-{
-    char buffer[1024] = {0};
-    read(_socket, buffer, 1024);
-    std::string response(buffer);
-    std::cout << "Received response: " << response << std::endl;
-    if (response.find("PING") != std::string::npos) {
-        std::string pong = "PONG " + response.substr(5) + "\r\n";
-        send(_socket, pong.c_str(), pong.size(), 0);
-        std::cout << "Sent PONG response" << std::endl;
-    }
 }
 
 void IRCBot::joinChannel() {
@@ -85,7 +72,5 @@ void IRCBot::sendCommand(const std::string& command) {
 
 void IRCBot::start() 
 {
-    while (true) {
-        authenticate();
-    }
+    sendMessagesOfDay();
 }

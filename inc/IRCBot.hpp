@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   IRCBot.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rdelicad <rdelicad@student.42.fr>          +#+  +:+       +#+        */
+/*   By: lxuxer <lxuxer@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/19 17:54:56 by rdelicad          #+#    #+#             */
-/*   Updated: 2024/07/19 18:28:22 by rdelicad         ###   ########.fr       */
+/*   Updated: 2024/07/20 13:16:32 by lxuxer           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,6 @@ class IRCBot
         int _socket;
 
         void connectToServer();
-        void authenticate();
         void joinChannel();
         void sendMessagesOfDay();
         void sendCommand(const std::string &command);
