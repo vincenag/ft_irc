@@ -6,7 +6,7 @@
 /*   By: lxuxer <lxuxer@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/19 17:59:26 by rdelicad          #+#    #+#             */
-/*   Updated: 2024/07/20 14:10:26 by lxuxer           ###   ########.fr       */
+/*   Updated: 2024/07/20 14:27:09 by lxuxer           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,43 +80,62 @@ void IRCBot::sendCommand(const std::string& command) {
 
 void IRCBot::start() 
 {
+    // Crear el descriptor de epoll
+    _epoll_fd = epoll_create1(0);
+    if (_epoll_fd < 0) {
+        perror("epoll_create1");
+        exit(1);
+    }
+
+    // Configurar el socket para eventos de lectura
+    struct epoll_event event;
+    event.events = EPOLLIN | EPOLLET; // EPOLLET para modo no bloqueante
+    event.data.fd = _socket;
+
+    if (epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, _socket, &event) < 0) {
+        perror("epoll_ctl");
+        close(_epoll_fd);
+        exit(1);
+    }
+
+    // Crear un buffer para eventos
+    struct epoll_event events[10];
     while (true) {
-        fd_set read_fds;
-        FD_ZERO(&read_fds);
-        FD_SET(_socket, &read_fds);
-
-        struct timeval timeout = {1, 0}; // Timeout de 1 segundo
-
-        int activity = select(_socket + 1, &read_fds, nullptr, nullptr, &timeout);
-        if (activity < 0) {
-            std::cerr << "Select error" << std::endl;
-            break;
-        } else if (activity == 0) {
-            // Timeout
-            continue;
+        int nfds = epoll_wait(_epoll_fd, events, 10, 1000); // Esperar hasta 1 segundo
+        if (nfds < 0) {
+            perror("epoll_wait");
+            close(_epoll_fd);
+            exit(1);
         }
 
-        if (FD_ISSET(_socket, &read_fds)) {
-            char buffer[1024] = {0};
-            int valread = recv(_socket, buffer, sizeof(buffer) - 1, 0);
-            if (valread < 0) {
-                perror("recv error");
-                break;
-            } else if (valread == 0) {
-                std::cerr << "Connection closed" << std::endl;
-                break;
-            }
+        for (int i = 0; i < nfds; ++i) {
+            if (events[i].data.fd == _socket) {
+                char buffer[1024] = {0};
+                int valread = recv(_socket, buffer, sizeof(buffer) - 1, 0);
+                if (valread < 0) {
+                    perror("recv error");
+                    close(_epoll_fd);
+                    exit(1);
+                } else if (valread == 0) {
+                    std::cerr << "Connection closed" << std::endl;
+                    close(_epoll_fd);
+                    exit(1);
+                }
 
-            buffer[valread] = '\0'; // Null-terminar el buffer
-            std::string message(buffer);
-            std::cout << "Received message: " << message << std::endl;
+                buffer[valread] = '\0'; // Null-terminar el buffer
+                std::string message(buffer);
+                std::cout << "Received message: " << message << std::endl;
 
-            // Verificar si el mensaje es "start"
-            if (message.find("PRIVMSG " + _channel + " :/start") != std::string::npos) {
-                sendMessagesOfDay();
+                // Verificar si el mensaje es "start"
+                if (message.find("PRIVMSG " + _channel + " :start") != std::string::npos) {
+                    sendMessagesOfDay();
+                }
             }
         }
     }
+
+    // Cerrar el descriptor de epoll
+    close(_epoll_fd);
 }
 
 void IRCBot::sendMessagesOfDay() 

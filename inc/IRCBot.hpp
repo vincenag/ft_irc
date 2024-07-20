@@ -6,7 +6,7 @@
 /*   By: lxuxer <lxuxer@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/19 17:54:56 by rdelicad          #+#    #+#             */
-/*   Updated: 2024/07/20 13:38:32 by lxuxer           ###   ########.fr       */
+/*   Updated: 2024/07/20 14:26:00 by lxuxer           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@ class IRCBot
         std::string _user;
         std::string _password;
         int _socket;
+        int _epoll_fd;
 
         void connectToServer();
         void joinChannel();
