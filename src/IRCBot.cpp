@@ -6,7 +6,7 @@
 /*   By: lxuxer <lxuxer@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/19 17:59:26 by rdelicad          #+#    #+#             */
-/*   Updated: 2024/07/20 13:18:38 by lxuxer           ###   ########.fr       */
+/*   Updated: 2024/07/20 14:10:26 by lxuxer           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,19 @@ IRCBot::IRCBot(const std::string &server, int port, const std::string &channel, 
 {
     connectToServer();
     joinChannel();
-    //sendMessagesOfDay();
+    //start();
+}
+
+void IRCBot::setSocketNonBlocking(int sockfd) {
+    int flags = fcntl(sockfd, F_GETFL, 0);
+    if (flags < 0) {
+        perror("fcntl");
+        exit(1);
+    }
+    if (fcntl(sockfd, F_SETFL, flags | O_NONBLOCK) < 0) {
+        perror("fcntl");
+        exit(1);
+    }
 }
 
 void IRCBot::connectToServer() 
@@ -27,41 +39,37 @@ void IRCBot::connectToServer()
         std::cerr << "Socket creation failed" << std::endl;
         exit(1);
     }
+    
+    setSocketNonBlocking(_socket);
+    
     struct sockaddr_in serv_addr;
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(_port);
     inet_pton(AF_INET, _server.c_str(), &serv_addr.sin_addr);
 
     if (connect(_socket, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
-        std::cerr << "Connection failed" << std::endl;
-        exit(1);
+        if (errno != EINPROGRESS) {  // Si no es un error de progreso en curso
+            std::cerr << "Connection failed" << std::endl;
+            close(_socket);
+            exit(1);
+        }
     }
     std::cout << "Connected to server" << std::endl;
 
-    // Enviar comando PASS si es necesario
+    // Enviar comandos de autenticación
     sendCommand("PASS " + _password);
-
-    // Enviar comando NICK
     sendCommand("NICK " + _nick);
-
-    // Enviar comando USER
     sendCommand("USER " + _user);
 }
 
-void IRCBot::joinChannel() {
+void IRCBot::joinChannel() 
+{
+    // Unirse al canal
     sendCommand("JOIN " + _channel + "\r\n");
     std::cout << "Joined channel: " << _channel << std::endl;
-}
 
-void IRCBot::sendMessagesOfDay() 
-{
-    while (true) {
-        std::string message = "PRIVMSG " + _channel + " :Mensaje del día: ¡Que tengas un excelente día!";
-        sendCommand(message);
-        std::cout << "Sent message: " << message << std::endl;
-        // enviar cada 2 minutos
-        sleep(120); 
-    }
+    // Enviar topic del canal
+    sendCommand("TOPIC " + _channel + " :Hello, I am a bot\r\n");
 }
 
 void IRCBot::sendCommand(const std::string& command) {
@@ -72,5 +80,47 @@ void IRCBot::sendCommand(const std::string& command) {
 
 void IRCBot::start() 
 {
-    sendMessagesOfDay();
+    while (true) {
+        fd_set read_fds;
+        FD_ZERO(&read_fds);
+        FD_SET(_socket, &read_fds);
+
+        struct timeval timeout = {1, 0}; // Timeout de 1 segundo
+
+        int activity = select(_socket + 1, &read_fds, nullptr, nullptr, &timeout);
+        if (activity < 0) {
+            std::cerr << "Select error" << std::endl;
+            break;
+        } else if (activity == 0) {
+            // Timeout
+            continue;
+        }
+
+        if (FD_ISSET(_socket, &read_fds)) {
+            char buffer[1024] = {0};
+            int valread = recv(_socket, buffer, sizeof(buffer) - 1, 0);
+            if (valread < 0) {
+                perror("recv error");
+                break;
+            } else if (valread == 0) {
+                std::cerr << "Connection closed" << std::endl;
+                break;
+            }
+
+            buffer[valread] = '\0'; // Null-terminar el buffer
+            std::string message(buffer);
+            std::cout << "Received message: " << message << std::endl;
+
+            // Verificar si el mensaje es "start"
+            if (message.find("PRIVMSG " + _channel + " :/start") != std::string::npos) {
+                sendMessagesOfDay();
+            }
+        }
+    }
+}
+
+void IRCBot::sendMessagesOfDay() 
+{
+    // Enviar mensajes del día
+    sendCommand("PRIVMSG " + _channel + " :Hello, I am a bot\r\n");
 }

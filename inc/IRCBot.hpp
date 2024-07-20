@@ -6,7 +6,7 @@
 /*   By: lxuxer <lxuxer@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/19 17:54:56 by rdelicad          #+#    #+#             */
-/*   Updated: 2024/07/20 13:16:32 by lxuxer           ###   ########.fr       */
+/*   Updated: 2024/07/20 13:38:32 by lxuxer           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@ class IRCBot
         void joinChannel();
         void sendMessagesOfDay();
         void sendCommand(const std::string &command);
+        void setSocketNonBlocking(int sockfd);
 
     public:
         IRCBot(const std::string &server, int port, const std::string &channel, const std::string &nick, const std::string &user, const std::string &password);
