@@ -28,6 +28,11 @@ class Client
         bool GetAuthenticated();
         void SetAuthenticated(bool Authenticated);
 
+        // *********** CURRENT CHANNEL ***********
+       
+        std::string GetChannel() const;
+        void SetChannel(const std::string &channel);
+
         // *********** NICK ***********
 
         void SetNickSet(bool value);
@@ -67,6 +72,7 @@ class Client
         std::string clientIpAddr;
         std::string clientNick;
         bool Authenticated;
+        
 
         // *********** NICK ***********
         bool nickSet;
@@ -87,6 +93,9 @@ class Client
         
         // *********** REGISTERED ***********
         bool registered;
+
+        // *********** Current Channel ***********
+        std::string currentChannel;
 };
 
 #endif

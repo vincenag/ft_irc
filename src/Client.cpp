@@ -9,7 +9,7 @@
 Client::Client():   clientSocket(0), clientIpAddr(""), clientNick(""), Authenticated(false), 
                     nickSet(false), userSet(false), username(""), realname(""), 
                     hostname(""), servername(""), buffer(""), disconnected(false), 
-                    registered(false){}
+                    registered(false), currentChannel("") {}
 
 Client::~Client(){}
 
@@ -33,6 +33,7 @@ Client &Client::operator=(Client const &src)
         this->disconnected = src.disconnected;
         this->commandQueue = src.commandQueue;
         this->registered = src.registered;
+        this->currentChannel = src.currentChannel;
     }
     return *this;
 }
@@ -82,6 +83,17 @@ void Client::SetAuthenticated(bool Authenticated)
 {
     this->Authenticated = Authenticated;
 }
+
+std::string Client::GetChannel() const
+{
+    return this->currentChannel;
+}
+
+void Client::SetChannel(const std::string &channel)
+{
+    this->currentChannel = channel;
+}
+
 // ############################################################
 // #                                                          #
 // #                         NICK                             #

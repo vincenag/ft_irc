@@ -208,6 +208,12 @@ void CommandHandler::processPrivmsg(Client &client, Server &server, const std::v
         return;
     }
 
+    // Verificar si el cliente está dentro del canal #42bot
+    Channel* clientChannel = server.GetThisChannel(client.GetChannel());
+    if (clientChannel && clientChannel->GetName() == "#42bot") {
+        sendMessageToBot(client, server, args);
+    }
+
     std::string destinatary = args[0];
     std::string message = args[1];
     for (size_t i = 2; i < args.size(); ++i) {
@@ -239,7 +245,47 @@ void CommandHandler::processPrivmsg(Client &client, Server &server, const std::v
         std::string errMsg = "ERROR: No such nick/channel\n";
         send(client.GetClientSocket(), errMsg.c_str(), errMsg.size(), 0);
     }
-    
+}
+
+void CommandHandler::sendMessageToBot(Client &client, Server &server, const std::vector<std::string> &args)
+{
+   // Concatenar el mensaje completo
+    std::string message = args[1];
+    for (size_t i = 2; i < args.size(); ++i) {
+        message += " " + args[i];
+    }
+
+    // Eliminar el prefijo ':' si está presente
+    if (!message.empty() && message[0] == ':') {
+        message.erase(0, 1);
+    }
+
+    // Obtener el canal
+    Channel* channel = server.GetThisChannel("#42bot");
+    if (channel == NULL) {
+        std::string errMsg = "ERROR: No such channel\n";
+        send(client.GetClientSocket(), errMsg.c_str(), errMsg.size(), 0);
+        return;
+    }
+
+    // Obtener el socket del bot
+    Client* botClient = server.GetUserByNick("42bot");
+    if (botClient == NULL) {
+        std::string errMsg = "ERROR: Bot not found\n";
+        send(client.GetClientSocket(), errMsg.c_str(), errMsg.size(), 0);
+        return;
+    }
+
+    // Comprobar si el mensaje es el comando !mod
+    if (message == "!mod") {
+        // Enviar el mensaje del día a todos los usuarios en el canal #42bot
+        std::string motd = ":" + botClient->GetClientNick() + "!" + botClient->GetUsername() + "@" + botClient->GetHostname() + " PRIVMSG #42bot :" + IRCBot::sendMessagesOfDay() + "\n";
+        server.broadcastToChannel(*channel, motd, botClient->GetClientSocket());
+    } else {
+        // Enviar mensaje de bienvenida a todos los usuarios en el canal #42bot
+        std::string welcomeMsg = ":" + botClient->GetClientNick() + "!" + botClient->GetUsername() + "@" + botClient->GetHostname() + " PRIVMSG #42bot :Welcome to the #42bot channel! Type !mod to receive the message of the day.\n";
+        server.broadcastToChannel(*channel, welcomeMsg, botClient->GetClientSocket());
+    }
 }
 
 void CommandHandler::processKick(Client &client, Server &server, const std::vector<std::string> &args)

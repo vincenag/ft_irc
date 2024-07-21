@@ -6,7 +6,7 @@
 /*   By: lxuxer <lxuxer@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/19 17:59:26 by rdelicad          #+#    #+#             */
-/*   Updated: 2024/07/20 14:27:09 by lxuxer           ###   ########.fr       */
+/*   Updated: 2024/07/21 12:42:13 by lxuxer           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,6 @@ IRCBot::IRCBot(const std::string &server, int port, const std::string &channel, 
 {
     connectToServer();
     joinChannel();
-    //start();
 }
 
 void IRCBot::setSocketNonBlocking(int sockfd) {
@@ -78,68 +77,36 @@ void IRCBot::sendCommand(const std::string& command) {
     std::cout << "Sent command: " << command << std::endl;
 }
 
-void IRCBot::start() 
+std::string IRCBot::sendMessagesOfDay() 
 {
-    // Crear el descriptor de epoll
-    _epoll_fd = epoll_create1(0);
-    if (_epoll_fd < 0) {
-        perror("epoll_create1");
-        exit(1);
-    }
+    // Lista de mensajes del día
+    static const char* messages[] = {
+        "Message of the day: Keep always a positive attitude!",
+        "Message of the day: Believe in yourself and all that you are.",
+        "Message of the day: Your limitation—it's only your imagination.",
+        "Message of the day: Push yourself, because no one else is going to do it for you.",
+        "Message of the day: Great things never come from comfort zones.",
+        "Message of the day: Dream it. Wish it. Do it.",
+        "Message of the day: Success doesn’t just find you. You have to go out and get it.",
+        "Message of the day: The harder you work for something, the greater you’ll feel when you achieve it.",
+        "Message of the day: Dream bigger. Do bigger.",
+        "Message of the day: Don’t stop when you’re tired. Stop when you’re done.",
+        "Message of the day: Wake up with determination. Go to bed with satisfaction.",
+        "Message of the day: Do something today that your future self will thank you for.",
+        "Message of the day: Little things make big days.",
+        "Message of the day: It’s going to be hard, but hard does not mean impossible.",
+        "Message of the day: Don’t wait for opportunity. Create it.",
+        "Message of the day: Sometimes we’re tested not to show our weaknesses, but to discover our strengths.",
+        "Message of the day: The key to success is to focus on goals, not obstacles.",
+        "Message of the day: Dream it. Believe it. Build it.",
+        "Message of the day: Keep going. Everything you need will come to you at the perfect time.",
+        "Message of the day: Don’t just dream about success. Get up and make it happen."
+    };
 
-    // Configurar el socket para eventos de lectura
-    struct epoll_event event;
-    event.events = EPOLLIN | EPOLLET; // EPOLLET para modo no bloqueante
-    event.data.fd = _socket;
+    // Calcular el número de mensajes
+    int numMessages = sizeof(messages) / sizeof(messages[0]);
 
-    if (epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, _socket, &event) < 0) {
-        perror("epoll_ctl");
-        close(_epoll_fd);
-        exit(1);
-    }
-
-    // Crear un buffer para eventos
-    struct epoll_event events[10];
-    while (true) {
-        int nfds = epoll_wait(_epoll_fd, events, 10, 1000); // Esperar hasta 1 segundo
-        if (nfds < 0) {
-            perror("epoll_wait");
-            close(_epoll_fd);
-            exit(1);
-        }
-
-        for (int i = 0; i < nfds; ++i) {
-            if (events[i].data.fd == _socket) {
-                char buffer[1024] = {0};
-                int valread = recv(_socket, buffer, sizeof(buffer) - 1, 0);
-                if (valread < 0) {
-                    perror("recv error");
-                    close(_epoll_fd);
-                    exit(1);
-                } else if (valread == 0) {
-                    std::cerr << "Connection closed" << std::endl;
-                    close(_epoll_fd);
-                    exit(1);
-                }
-
-                buffer[valread] = '\0'; // Null-terminar el buffer
-                std::string message(buffer);
-                std::cout << "Received message: " << message << std::endl;
-
-                // Verificar si el mensaje es "start"
-                if (message.find("PRIVMSG " + _channel + " :start") != std::string::npos) {
-                    sendMessagesOfDay();
-                }
-            }
-        }
-    }
-
-    // Cerrar el descriptor de epoll
-    close(_epoll_fd);
-}
-
-void IRCBot::sendMessagesOfDay() 
-{
-    // Enviar mensajes del día
-    sendCommand("PRIVMSG " + _channel + " :Hello, I am a bot\r\n");
+    // Seleccionar un mensaje aleatorio
+    int index = rand() % numMessages;
+    return messages[index];
 }

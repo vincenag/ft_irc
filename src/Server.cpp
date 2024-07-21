@@ -342,6 +342,7 @@ void Server::JoinChannel(Client &client, std::string channelName, const std::vec
 
         // Añadir al cliente al canal
         channel->AddUser(client.GetClientSocket());
+        client.SetChannel(channelName); 
 
         // Enviar mensajes de bienvenida al canal
         sendJoinMessages(client, *channel);
@@ -358,6 +359,7 @@ void Server::JoinChannel(Client &client, std::string channelName, const std::vec
         newChannel.AddUser(client.GetClientSocket());
         newChannel.addOperator(client.GetClientSocket());
         this->channels.push_back(newChannel);
+        client.SetChannel(channelName);
 
         // Enviar mensajes de bienvenida al canal
         sendJoinMessages(client, newChannel);
@@ -573,4 +575,14 @@ void Server::handleClientReconnection(int clientSocket) {
 std::vector<Channel> Server::GetAllChannels() const
 {
     return this->channels;
+}
+
+int Server::GetSocket(const std::string &nick) const
+{
+    for (size_t i = 0; i < this->clients.size(); i++)
+    {
+        if (this->clients[i].GetClientNick() == nick)
+            return this->clients[i].GetClientSocket();
+    }
+    return -1;
 }
