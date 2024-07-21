@@ -47,6 +47,7 @@ class Channel
         void setTopic(const std::string &topic);
         const std::string &getTopic() const;
         bool isTopicChanged(const std::string &topic) const;
+        bool HasTopic() const;
 
         // Modos del canal
         // +k: clave

@@ -220,6 +220,11 @@ void Channel::setTopic(const std::string &newTopic)
     this->topic = newTopic;
 }
 
+bool Channel::HasTopic() const
+{
+    return this->topic != "";
+}
+
 // --------- PASSWORD -------------
 
 void Channel::setPassword(std::string password)

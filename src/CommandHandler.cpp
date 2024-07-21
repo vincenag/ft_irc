@@ -614,13 +614,31 @@ void CommandHandler::processDCCSend(Client &client, const std::vector<std::strin
               << MAGENTA << filename << RESET << std::endl;
 }
 
-void CommandHandler::ListChannels(Client &client, Server &server) {
+void CommandHandler::ListChannels(Client &client, Server &server) 
+{
     std::string Msg;
-    std::string channelList = "Channel list: ";
+    std::string serverName = "myserver"; // Nombre del servidor, cámbialo según sea necesario
+
+    // Enviar RPL_LISTSTART (321)
+    Msg = ":" + serverName + " 321 " + client.GetClientNick() + " Channel :Users Name\n";
+    send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+
+    // Obtener la lista de canales
     std::vector<Channel> channels = server.GetAllChannels();
     for (size_t i = 0; i < channels.size(); i++) {
-        channelList += channels[i].GetName() + " ";
+        // Enviar RPL_LIST (322) para cada canal
+        Msg = ":" + serverName + " 322 " + client.GetClientNick() + " " + channels[i].GetName() + " " + Utiles::toString(channels[i].GetUsers().size()) + " :\n";
+        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+
+        // Enviar el topic del canal, si existe
+        if (channels[i].HasTopic()) {
+            std::string topic = channels[i].getTopic();
+            Msg = ":" + serverName + " 332 " + client.GetClientNick() + " " + channels[i].GetName() + " :" + topic + "\n";
+            send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
+        }
     }
-    channelList += "\n";
-    send(client.GetClientSocket(), channelList.c_str(), channelList.size(), 0);
+
+    // Enviar RPL_LISTEND (323)
+    Msg = ":" + serverName + " 323 " + client.GetClientNick() + " :End of /LIST\n";
+    send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
 }
