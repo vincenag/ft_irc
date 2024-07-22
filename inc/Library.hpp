@@ -10,8 +10,10 @@
 #define CYAN "\033[1;36m"
 #define RESET "\033[0m"
 
+#define HEXCHAT_SERVER "ft_irc"
 
 #define nullptr NULL
+
 
 #include <iostream>
 #include <iomanip>

@@ -29,6 +29,30 @@ Server &Server::operator=(Server const &src) // modificar esto luego
 bool Server::Signal = false;
 
 /**
+    * @brief Imprime un banner en la consola para cada cliente que se conecta.
+ */
+void Server::printIRCChatBanner(int clientSocket)
+{
+    std::string banner =     "  8 8888 8 888888888o.       ,o888888o.        \n";
+    banner +=                "  8 8888 8 8888    `88.     8888     `88.      \n";
+    banner +=                "  8 8888 8 8888     `88  ,8 8888       `8.     \n";
+    banner +=                "  8 8888 8 8888     ,88  88 8888               \n";
+    banner +=                "  8 8888 8 8888.   ,88'  88 8888               \n";
+    banner +=                "  8 8888 8 888888888P'   88 8888               \n";
+    banner +=                "  8 8888 8 8888`8b       88 8888               \n";
+    banner +=                "  8 8888 8 8888 `8b.     `8 8888       .8'     \n";
+    banner +=                "  8 8888 8 8888   `8b.      8888     ,88'      \n";
+    banner +=                "  8 8888 8 8888     `88.     `8888888P'        \n";
+
+
+    banner += "\n\n";
+    banner +=  "** Welcome to the IRC Chat **\n\n" ;
+    banner +=  "Please enter the password to continue: "  "PASS <password>\n";
+
+    send(clientSocket, banner.c_str(), banner.size(), 0);
+}
+
+/**
  * @brief Manejador de señales.
  *
  * Esta función estática se llama cuando se recibe una señal.
@@ -93,6 +117,10 @@ void Server::serverInit(int port, std::string password)
     this->shutdownServer();
 }
 
+/**
+ * @brief Apaga el servidor.
+ * Esta función cierra el socket del servidor y los sockets de los clientes.
+ */
 void Server::shutdownServer()
 {
     std::cout   << Server::getCurrentTime()
@@ -107,15 +135,14 @@ void Server::shutdownServer()
 
 
 /**
- * @brief Inicializa el socket del servidor.
+ * @brief Inicializa el socket del servidor y lo configura para escuchar conexiones entrantes.
  *
- * Esta función crea un socket para el servidor, configura las opciones del socket,
- * lo establece en modo no bloqueante, lo liga a una dirección y puerto específicos,
- * y lo pone en modo de escucha para aceptar conexiones entrantes. 
- * También agrega el socket del servidor a la estructura `poll` para monitorear eventos.
+ * Esta función crea el socket, establece sus opciones, lo configura para el modo no bloqueante,
+ * lo liga a la dirección y puerto especificados, y comienza a escuchar conexiones entrantes.
+ * También agrega el socket del servidor a la lista de descriptores de archivo para monitorear eventos de entrada.
+ * Finalmente, conecta un bot al servidor.
  *
- * @throw std::runtime_error Si ocurre un error al crear el socket, configurar opciones,
- *        establecer el modo no bloqueante, ligar el socket o ponerlo en modo de escucha.
+ * @throw std::runtime_error Si ocurre un error durante la creación, configuración, enlace, o escucha del socket.
  */
 void Server::socketInit() 
 {
@@ -159,12 +186,15 @@ void Server::socketInit()
 
 
 /**
- * @brief Acepta una nueva conexión de cliente.
+ * @brief Acepta una nueva conexión de cliente y configura su socket.
  *
- * Esta función acepta una conexión entrante en el socket del servidor, configura el socket del cliente en modo no bloqueante,
- * crea una nueva instancia de la clase Client y la agrega a la lista de clientes.
+ * Esta función acepta una nueva conexión de cliente, establece el socket del cliente en modo no bloqueante,
+ * agrega el socket a la lista de descriptores de archivo para monitorear eventos de entrada, crea una nueva
+ * instancia de `Client`, y lo inicializa con la información del socket y la dirección IP del cliente.
+ * Finalmente, imprime un mensaje en la consola indicando la conexión del nuevo cliente y muestra el banner
+ * de chat IRC al cliente.
  *
- * @throw std::runtime_error Si ocurre un error al aceptar la conexión del cliente o al establecer el socket en modo no bloqueante.
+ * @throw std::runtime_error Si ocurre un error al aceptar la conexión del cliente o al configurar el socket en modo no bloqueante.
  */
 void Server::acceptClient()
 {
@@ -193,30 +223,6 @@ void Server::acceptClient()
     clients.push_back(newClient);
 
     printIRCChatBanner(clientSocket);
-}
-
-/**
-    * @brief Imprime un banner en la consola para cada cliente que se conecta.
- */
-void Server::printIRCChatBanner(int clientSocket)
-{
-    std::string banner =     "  8 8888 8 888888888o.       ,o888888o.        \n";
-    banner +=                "  8 8888 8 8888    `88.     8888     `88.      \n";
-    banner +=                "  8 8888 8 8888     `88  ,8 8888       `8.     \n";
-    banner +=                "  8 8888 8 8888     ,88  88 8888               \n";
-    banner +=                "  8 8888 8 8888.   ,88'  88 8888               \n";
-    banner +=                "  8 8888 8 888888888P'   88 8888               \n";
-    banner +=                "  8 8888 8 8888`8b       88 8888               \n";
-    banner +=                "  8 8888 8 8888 `8b.     `8 8888       .8'     \n";
-    banner +=                "  8 8888 8 8888   `8b.      8888     ,88'      \n";
-    banner +=                "  8 8888 8 8888     `88.     `8888888P'        \n";
-
-
-    banner += "\n\n";
-    banner +=  "** Welcome to the IRC Chat **\n\n" ;
-    banner +=  "Please enter the password to continue: "  "PASS <password>\n";
-
-    send(clientSocket, banner.c_str(), banner.size(), 0);
 }
 
 /**
@@ -267,13 +273,18 @@ void Server::getClientdata(int clientSocket)
 
                 // Crear una instancia de CommandHandler y manejar el comando
                 CommandHandler cmdHandler;
-                std::cout << "Command: " << command << std::endl;
                 cmdHandler.handleCommand(command, *this, *client);
             }
         }
     }
 }
 
+/**
+ * @brief Elimina un cliente de la lista de clientes.
+ * Esta función elimina un cliente de la lista de clientes y elimina el descriptor de archivo del cliente de la lista de descriptores de archivo.
+ * También elimina al cliente de todos los canales a los que pertenece.
+ * @param clientSocket El descriptor de archivo del socket del cliente. 
+ */
 void Server::RemoveClient(int clientSocket)
 {
     for (size_t i = 0; i < this->clients.size(); i++)
@@ -303,6 +314,18 @@ void Server::RemoveClient(int clientSocket)
 
 }
 
+/**
+ * @brief Agrega un cliente a un canal.
+ * Esta función agrega un cliente a un canal existente o crea un nuevo canal y agrega al cliente.
+ * @param client El cliente que se unirá al canal.
+ * @param channelName El nombre del canal al que se unirá el cliente.
+ * @param args Los argumentos adicionales proporcionados por el cliente.
+ * @throw std::runtime_error Si el cliente ya está en el canal.
+ * @throw std::runtime_error Si el canal está lleno.
+ * @throw std::runtime_error Si el cliente no está invitado al canal.
+ * @throw std::runtime_error Si la contraseña del canal es incorrecta.
+ * 
+ */
 void Server::JoinChannel(Client &client, std::string channelName, const std::vector<std::string> &args)
 {
    bool channelFound = ChannelExists(channelName);
@@ -375,7 +398,16 @@ void Server::JoinChannel(Client &client, std::string channelName, const std::vec
     }
 }
 
-// Mensaje de bienvenida
+/**
+ * @brief Envía los mensajes de JOIN apropiados cuando un cliente se une a un canal.
+ *
+ * Esta función envía el mensaje JOIN a todos los usuarios en el canal, incluido el usuario que se está uniendo.
+ * También envía la respuesta numérica RPL_TOPIC (332) si el canal tiene un tema establecido, o RPL_NOTOPIC (331)
+ * si no hay un tema establecido. Finalmente, actualiza la lista de usuarios del canal.
+ *
+ * @param client El cliente que se está uniendo al canal.
+ * @param channel El canal al que el cliente se está uniendo.
+ */
 void Server::sendJoinMessages(Client &client, Channel &channel)
 {
     std::string nick = client.GetClientNick();
@@ -401,6 +433,16 @@ void Server::sendJoinMessages(Client &client, Channel &channel)
     Server::updateUserList(channel);
 }
 
+/**
+ * @brief Envía un mensaje a todos los usuarios en un canal, excepto al usuario especificado.
+ *
+ * Esta función recorre todos los usuarios en el canal y envía el mensaje proporcionado a cada usuario.
+ * Si el `clientSocket` proporcionado es diferente de -1, ese usuario será excluido de la transmisión.
+ *
+ * @param channel El canal cuyos usuarios recibirán el mensaje.
+ * @param message El mensaje que se enviará a los usuarios del canal.
+ * @param clientSocket El socket del cliente que no debería recibir el mensaje. Si es -1, todos los usuarios reciben el mensaje.
+ */
 void Server::broadcastToChannel(Channel &channel, const std::string &message, int clientSocket)
 {
     std::vector<int> users = channel.GetUsers(); // Asume que GetUsers devuelve un std::vector<int>
@@ -412,6 +454,14 @@ void Server::broadcastToChannel(Channel &channel, const std::string &message, in
     }
 }
 
+/**
+ * @brief Actualiza y envía la lista de usuarios de un canal a todos los usuarios en ese canal.
+ *
+ * Esta función construye y envía los mensajes RPL_NAMREPLY (353) y RPL_ENDOFNAMES (366) a cada usuario en el canal,
+ * proporcionando una lista de los usuarios actuales en el canal.
+ *
+ * @param channel El canal del cual se obtendrán y enviarán las listas de usuarios.
+ */
 void Server::updateUserList(Channel &channel)
 {
     std::vector<int> users = channel.GetUsers();
@@ -513,13 +563,13 @@ Channel* Server::GetThisChannel(std::string channelName)
 
 Client* Server::GetUserByNick(const std::string& nick)
 {
-    if (isUser(nick)) { // Primero verifica si el usuario existe
-        int socketId = GetSocketByNick(nick); // Obtiene el socketId basado en el nickname
-        if (socketId != -1) { // Asegúrate de que el socketId es válido
-            return GetThisClient(socketId); // Retorna el puntero al Client
+    if (isUser(nick)) { 
+        int socketId = GetSocketByNick(nick); 
+        if (socketId != -1) { 
+            return GetThisClient(socketId); 
         }
     }
-    return nullptr; // Retorna nullptr si el usuario no existe o si hubo algún error
+    return nullptr; 
 }
 
 bool Server::isUser(const std::string &nick) const
@@ -530,46 +580,6 @@ bool Server::isUser(const std::string &nick) const
             return true;
     }
     return false;
-}
-
-/**
-    * @brief Función que obtiene fecha y hora actuales
- */
-
-std::string Server::getCurrentTime()
-{
-    std::time_t now = std::time(0);
-    std::tm *nowLocal = std::localtime(&now);
-
-    std::stringstream ss;
-    ss << CYAN << std::setfill('0') << std::setw(2) << nowLocal->tm_mday << '/'
-       << std::setfill('0') << std::setw(2) << (nowLocal->tm_mon + 1) << "/"
-       << (nowLocal->tm_year + 1900) << " " << RESET
-       << YELLOW << std::setfill('0') << std::setw(2) << nowLocal->tm_hour << ":" 
-       << std::setfill('0') << std::setw(2) << nowLocal->tm_min << ":" 
-       << std::setfill('0') << std::setw(2) << nowLocal->tm_sec << " " << RESET;
-
-    return ss.str();
-}
-
-void Server::handleClientReconnection(int clientSocket) {
-    for (std::vector<Client>::iterator it = this->clients.begin(); it != this->clients.end(); ++it) {
-        if (it->GetClientSocket() == clientSocket) {
-            it->SetDisconnected(false);
-
-            // Procesar los comandos almacenados
-            while (!it->getCommandQueue().empty()) {
-                std::string command = it->getCommandQueue().front();
-                it->getCommandQueue().pop();
-
-                CommandHandler cmdHandler;
-                cmdHandler.handleCommand(command, *this, *it);
-            }
-
-            it->clearBuffer();
-            break;
-        }
-    }
 }
 
 std::vector<Channel> Server::GetAllChannels() const
@@ -586,3 +596,50 @@ int Server::GetSocket(const std::string &nick) const
     }
     return -1;
 }
+
+/**
+    * @brief Función que obtiene fecha y hora actuales
+ */
+std::string Server::getCurrentTime()
+{
+    std::time_t now = std::time(0);
+    std::tm *nowLocal = std::localtime(&now);
+
+    std::stringstream ss;
+    ss << CYAN << std::setfill('0') << std::setw(2) << nowLocal->tm_mday << '/'
+       << std::setfill('0') << std::setw(2) << (nowLocal->tm_mon + 1) << "/"
+       << (nowLocal->tm_year + 1900) << " " << RESET
+       << YELLOW << std::setfill('0') << std::setw(2) << nowLocal->tm_hour << ":" 
+       << std::setfill('0') << std::setw(2) << nowLocal->tm_min << ":" 
+       << std::setfill('0') << std::setw(2) << nowLocal->tm_sec << " " << RESET;
+
+    return ss.str();
+}
+
+/**
+ * @brief Maneja la reconexión de un cliente, procesando cualquier comando en cola.
+ *
+ * Esta función marca al cliente como reconectado, procesa cualquier comando pendiente en su cola de comandos,
+ * y limpia su buffer de comandos.
+ *
+ * @param clientSocket El socket del cliente que se está reconectando.
+ */
+void Server::handleClientReconnection(int clientSocket) {
+    for (std::vector<Client>::iterator it = this->clients.begin(); it != this->clients.end(); ++it) {
+        if (it->GetClientSocket() == clientSocket) {
+            it->SetDisconnected(false);
+
+            while (!it->getCommandQueue().empty()) {
+                std::string command = it->getCommandQueue().front();
+                it->getCommandQueue().pop();
+
+                CommandHandler cmdHandler;
+                cmdHandler.handleCommand(command, *this, *it);
+            }
+
+            it->clearBuffer();
+            break;
+        }
+    }
+}
+

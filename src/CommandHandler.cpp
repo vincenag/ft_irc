@@ -10,6 +10,11 @@ void CommandHandler::handleCommand(const std::string &commandLine, Server &serve
     std::string command = tokens[0];
     tokens.erase(tokens.begin());
 
+    if (tokens[0] == HEXCHAT_SERVER) {
+        tokens.erase(tokens.begin());
+    }
+
+
     if (command == "PASS") {
         processPass(client, server, tokens);
     } else if (command == "NICK" && client.GetAuthenticated() == true) {
@@ -31,7 +36,7 @@ void CommandHandler::handleCommand(const std::string &commandLine, Server &serve
     } else if (command == "LIST" && client.GetAuthenticated() == true) {
         ListChannels(client, server); // Corrected to pass the server instance
     } else if (command != "CAP" && command != "WHO")  {
-        std::string msg =  "ERROR: Unknown command\n" ;
+        std::string msg =  "ERROR: Unknown command: " + command + "\n" ;
         send(client.GetClientSocket(), msg.c_str(), msg.size(), 0);
     } else if (command == "DCC" && tokens[0] == "SEND") {
         processDCCSend(client, tokens);
@@ -48,6 +53,7 @@ std::vector<std::string> CommandHandler::splitCommand(const std::string &command
         token.erase(std::remove(token.begin(), token.end(), '\n'), token.end());
         tokens.push_back(token);
     }
+
     return tokens;
 }
 
@@ -179,7 +185,7 @@ void CommandHandler::processJoin(Client &client, Server &server, const std::vect
 
     // Verficar que el nombre del canal comience con #
     std::string channel = args[0];
-    printf("Channel: %s\n", channel.c_str());
+    //printf("Channel: %s\n", channel.c_str());
     if (channel[0] != '#') {
         Msg = "ERROR: Channel name must start with '#': JOIN <#channel>\n";
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
@@ -293,8 +299,8 @@ void CommandHandler::processKick(Client &client, Server &server, const std::vect
     // Expulsar al usuario del canal
     if (args.size() < 2) {
     // ERR_NEEDMOREPARAMS (461)
-    //Utiles::sendNumericReply(client, 461, "KICK :Not enough parameters");
-    return;
+        Utiles::sendNumericReply(client, 461, "KICK :Not enough parameters");
+        return;
     }
 
     std::string channelName = args[0];
@@ -302,13 +308,10 @@ void CommandHandler::processKick(Client &client, Server &server, const std::vect
     std::string reason = (args.size() > 2) ? args[2] : "No reason given";
 
     Channel* channel = server.GetThisChannel(channelName);
-    if (channel == nullptr) {
-        // ERR_NOSUCHCHANNEL (403)
-        std::string errorMsg = ": 403 " + client.GetClientNick() + " " + channelName + " :No such channel\n";
-        send(client.GetClientSocket(), errorMsg.c_str(), errorMsg.size(), 0);
-        return;
-    }
 
+    if (nickToKick[0] == ':') {
+        nickToKick = nickToKick.substr(1);
+    }
     Client *targetClient = server.GetUserByNick(nickToKick);
     if (targetClient == nullptr) {
         // ERR_NOSUCHNICK (401)
@@ -390,13 +393,7 @@ void CommandHandler::processTopic(Client &client, Server &server, const std::vec
     }
 
     std::string channelName = args[0];
-    Channel* channel = server.GetThisChannel(channelName); // Asumiendo que existe este método en Server
-
-    if (channel == nullptr) {
-        // Enviar error si el canal no existe
-        Utiles::sendNumericReply(client, 403, channelName + " :No such channel");
-        return;
-    }
+    Channel* channel = server.GetThisChannel(channelName);
 
     if (args.size() == 1) {
         // Si solo se proporciona el nombre del canal, devolver el tema actual
@@ -443,9 +440,6 @@ void CommandHandler::processMode(Client &client, Server &server, const std::vect
    std::string Msg;
     //RPL_UMODEIS (324) - Modestring not given
     if (args.size() < 2) {
-        Msg = "ERROR: modestring not given";
-        send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
-        //Utiles::sendNumericReply(client, 324, "modestring not given");
         return;
     }
 
@@ -548,7 +542,7 @@ bool CommandHandler::handleOperatorCommand(Client &client, Server &server,
     }
 
     if (channel == nullptr) {
-        std::string Msg = "ERROR: Channel does not exist\n";
+        std::string Msg = "ERROR: Command requires a valid channel\n";
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
         return false;
     }
@@ -568,6 +562,8 @@ bool CommandHandler::handleOperatorCommand(Client &client, Server &server,
                 processMode(client, server, args);
             }
         } else {
+            if (command == "MODE")
+                return false;
             std::string Msg = "ERROR: You are not an operator in this channel\n";
             send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
             return false;
