@@ -5,7 +5,7 @@ void Utiles::sendWelcomeMessage(Client& client)
     //mensaje bienvenida segun protoloco IRC
     Utiles::sendNumericReply(client, 001, "Welcome to the Internet Relay Network " + client.GetClientNick());
     Utiles::sendNumericReply(client, 002, "Your host is ft_irc, running version 1.0");
-    Utiles::sendNumericReply(client, 003, "This server was created on 18/07/224");
+    Utiles::sendNumericReply(client, 003, "This server was created on 18/07/2024");
     Utiles::sendNumericReply(client, 004, "ft_irc version 1.0");
 }
 
