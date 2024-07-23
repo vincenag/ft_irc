@@ -187,6 +187,18 @@ std::string Client::GetServername() const
     return this->servername;
 }
 
+
+// ############################################################
+// #                                                          #
+// #                         BUFFER CTRL + D                  #
+// #                                                          #
+// ############################################################
+
+std::string &Client::getBuffer()
+{
+    return this->buffer;
+}
+
 // ############################################################
 // #                                                          #
 // #                         DISCONNECTED CTRL + Z            #
@@ -210,9 +222,4 @@ std::queue<std::string> Client::getCommandQueue()
 
 void Client::clearBuffer() {
     this->buffer.clear();
-}
-
-std::string &Client::getBuffer()
-{
-    return this->buffer;
 }
