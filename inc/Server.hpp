@@ -6,7 +6,8 @@ class Client;
 class Channel;
 class IRCBot;
 
-class Server{
+class Server
+{
     public:
         Server();
         ~Server();

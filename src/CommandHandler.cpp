@@ -214,12 +214,6 @@ void CommandHandler::processPrivmsg(Client &client, Server &server, const std::v
         return;
     }
 
-    // Verificar si el cliente está dentro del canal #42bot
-    Channel* clientChannel = server.GetThisChannel(client.GetChannel());
-    if (clientChannel && clientChannel->GetName() == "#42bot") {
-        sendMessageToBot(client, server, args);
-    }
-
     std::string destinatary = args[0];
     std::string message = args[1];
     for (size_t i = 2; i < args.size(); ++i) {
@@ -233,6 +227,12 @@ void CommandHandler::processPrivmsg(Client &client, Server &server, const std::v
         send(client.GetClientSocket(), Msg.c_str(), Msg.size(), 0);
         return;
     }
+
+    // Verificar si el cliente está dentro del canal #42bot
+    if (destinatary == "#42bot") {
+        sendMessageToBot(client, server, args);
+    }
+
 
     if (server.ChannelExists(destinatary)) {
         // Si es un canal, reenvía el mensaje a todos los usuarios en el canal

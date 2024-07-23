@@ -55,15 +55,12 @@ class Client
         std::string GetHostname() const;
         std::string GetServername() const;
 
-        // *********** BUFFER CTRL + D ***********
-        std::string &getBuffer();
-
-        void clearBuffer();
-
         // *********** DISCONNECTED CTRL + Z ***********
         bool IsDisconnected() const;
         void SetDisconnected(bool state);
         std::queue<std::string> getCommandQueue();
+        std::string &getBuffer();
+        void clearBuffer();
 
 
     
