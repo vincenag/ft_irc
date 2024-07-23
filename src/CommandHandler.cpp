@@ -404,6 +404,11 @@ void CommandHandler::processTopic(Client &client, Server &server, const std::vec
             Utiles::sendNumericReply(client, 332, channelName + " " + currentTopic);
         }
     } else {
+        // Verificar si el cliente es miembro del canal
+        if (!channel->IsUserInChannel(client.GetClientSocket())) {
+            Utiles::sendNumericReply(client, 442, channelName + " :You're not on that channel");
+            return;
+        }
         // Verificar si el canal tiene el modo +t activado
         bool isOperator = channel->IsOperator(client.GetClientSocket());
 
@@ -420,6 +425,7 @@ void CommandHandler::processTopic(Client &client, Server &server, const std::vec
             newTopic += args[i];
         }
         
+        // Eliminar los dos puntos (:) del principio si estan presentes
         if (!newTopic.empty() && newTopic[0] == ':') {
             newTopic = newTopic.substr(1);
         } else {
