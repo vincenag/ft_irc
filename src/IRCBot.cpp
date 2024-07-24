@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   IRCBot.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lxuxer <lxuxer@student.42.fr>              +#+  +:+       +#+        */
+/*   By: rdelicad <rdelicad@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/19 17:59:26 by rdelicad          #+#    #+#             */
-/*   Updated: 2024/07/21 12:42:13 by lxuxer           ###   ########.fr       */
+/*   Updated: 2024/07/24 16:37:33 by rdelicad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,13 +19,9 @@ IRCBot::IRCBot(const std::string &server, int port, const std::string &channel, 
     joinChannel();
 }
 
-void IRCBot::setSocketNonBlocking(int sockfd) {
-    int flags = fcntl(sockfd, F_GETFL, 0);
-    if (flags < 0) {
-        perror("fcntl");
-        exit(1);
-    }
-    if (fcntl(sockfd, F_SETFL, flags | O_NONBLOCK) < 0) {
+void IRCBot::setSocketNonBlocking(int sockfd) 
+{
+    if (fcntl(sockfd, F_SETFL, O_NONBLOCK) < 0) {
         perror("fcntl");
         exit(1);
     }

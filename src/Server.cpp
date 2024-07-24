@@ -177,11 +177,11 @@ void Server::socketInit()
                 << MAGENTA << this->port << RESET << std::endl;
 
     // ! Conectar el Bot al server
-    std::string serverBot = "ft_irc";
+    std::string serverBot = "127.0.0.1";
     std::string channel = "#42bot";
     std::string nick = "42bot";
     std::string user = "42bot 0 * :42bot";
-    //IRCBot bot(serverBot, port, channel, nick, user, password);
+    IRCBot bot(serverBot, port, channel, nick, user, password);
 }
 
 
